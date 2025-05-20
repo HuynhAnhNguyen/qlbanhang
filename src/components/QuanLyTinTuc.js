@@ -20,7 +20,7 @@ const QuanLyTinTuc = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-  const [imageUrl, setImageUrl] = useState(null);
+  // const [imageUrl, setImageUrl] = useState(null);
   const itemsPerPage = 10;
 
   // Modal states

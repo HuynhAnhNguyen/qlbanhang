@@ -6,13 +6,7 @@ import {
   Row,
   Col,
   Badge,
-  ListGroup,
-  Tabs,
-  Tab,
-  Accordion,
-  Card,
 } from "react-bootstrap";
-import { FaBox, FaRuler, FaGlobe, FaTag, FaCalendar } from "react-icons/fa";
 import Swal from "sweetalert2";
 import {
   addKhuyenMai,
@@ -22,6 +16,8 @@ import {
   removeKhuyenMai,
   updateSanPham,
   fetchKhuyenMaiAvailable,
+  uploadImage,
+  getImageLink,
 } from "../services/apiService";
 
 const SanPham = () => {
@@ -50,9 +46,36 @@ const SanPham = () => {
     nuocsx: "",
     gia: 0,
     status: "available",
+    imageurl: "",
   });
 
   const token = localStorage.getItem("token");
+
+  // Handle image upload
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const uploadResponse = await uploadImage(token, file);
+      if (uploadResponse.resultCode === 0) {
+        setFormData((prev) => ({
+          ...prev,
+          imageurl: uploadResponse.data,
+        }));
+        setValidationErrors((prev) => ({ ...prev, imageurl: "" }));
+      }
+    } catch (err) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        imageurl: "Không thể tải lên ảnh",
+      }));
+      console.error("Error uploading image:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Validate form data
   const validateForm = () => {
@@ -71,6 +94,9 @@ const SanPham = () => {
     }
     if (formData.gia <= 0) {
       errors.gia = "Giá phải lớn hơn 0";
+    }
+    if (!formData.imageurl) {
+      errors.imageurl = "Hình ảnh sản phẩm là bắt buộc";
     }
 
     setValidationErrors(errors);
@@ -169,23 +195,13 @@ const SanPham = () => {
 
   // Open add modal
   const openAddModal = () => {
-    // setFormData({
-    //   userName: "",
-    //   passWord: "",
-    //   email: "",
-    //   phoneNumber: "",
-    //   fullname: "",
-    //   roleName: "",
-    // });
-    // setValidationErrors({});
-    // setShowAddModal(true);
-
     setFormData({
       tensp: "",
       dvt: "",
       nuocsx: "",
       gia: 0,
       status: "available",
+      imageurl: "",
     });
     setValidationErrors({});
     setShowAddModal(true);
@@ -194,15 +210,28 @@ const SanPham = () => {
   // Open edit modal
   const openEditModal = async (product) => {
     setSelectedProduct(product);
-    setFormData({
-      tensp: product.tensp,
-      dvt: product.dvt,
-      nuocsx: product.nuocsx,
-      gia: product.gia,
-      status: product.status,
-    });
-    setValidationErrors({});
-    setShowEditModal(true);
+    try {
+      setLoading(true);
+      const data = await getSanPhamById(token, product.id);
+      if (data.resultCode === 0) {
+        setFormData({
+          tensp: data.data.tensp,
+          dvt: data.data.dvt,
+          nuocsx: data.data.nuocsx,
+          gia: data.data.gia,
+          status: data.data.status,
+          imageurl: data.data.imageurl,
+        });
+        setShowEditModal(true);
+      } else {
+        throw new Error(data.message || "Không thể tải sản phẩm");
+      }
+    } catch (err) {
+      Swal.fire("Lỗi!", "Không thể tải sản phẩm", "error");
+      console.error("Error loading news:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Open detail modal
@@ -360,6 +389,44 @@ const SanPham = () => {
         </Col>
       </Row>
       <Row className="mb-3">
+        <Col md={8}>
+          <Form.Group>
+            <Form.Label>
+              Hình ảnh sản phẩm <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              isInvalid={!!validationErrors.imageurl}
+            />
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.imageurl}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+        <Col md={4}>
+          <Form.Group>
+            <Form.Label>Xem trước hình ảnh</Form.Label>
+            <div className="mt-2">
+              {formData.imageurl ? (
+                <img
+                  src={getImageLink(formData.imageurl)}
+                  alt="Preview"
+                  className="img-thumbnail"
+                  style={{ maxWidth: "200px", maxHeight: "200px" }}
+                />
+              ) : (
+                <div className="text-center">
+                  <i className="fas fa-box-open fa-6x text-muted mb-3"></i>
+                  <p className="text-muted">Sản phẩm không có hình ảnh</p>
+                </div>
+              )}
+            </div>
+          </Form.Group>
+        </Col>
+      </Row>
+      <Row className="mb-3">
         <Col md={6}>
           <Form.Group>
             <Form.Label>
@@ -489,10 +556,11 @@ const SanPham = () => {
                   <tr>
                     <th style={{ width: "5%" }}>STT</th>
                     <th style={{ width: "10%" }}>Mã SP</th>
-                    <th style={{ width: "25%" }}>Tên sản phẩm</th>
+                    <th style={{ width: "10%" }}>Hình ảnh</th>
+                    <th style={{ width: "15%" }}>Tên sản phẩm</th>
                     <th style={{ width: "10%" }}>Đơn vị tính</th>
-                    <th style={{ width: "15%" }}>Giá bán</th>
-                    <th style={{ width: "10%" }}>Khuyến mãi</th>
+                    <th style={{ width: "10%" }}>Giá bán</th>
+                    <th style={{ width: "15%" }}>Khuyến mãi</th>
                     <th style={{ width: "10%" }}>Trạng thái</th>
                     <th style={{ width: "15%" }}>Thao tác</th>
                   </tr>
@@ -502,9 +570,37 @@ const SanPham = () => {
                     <tr key={index}>
                       <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                       <td>{item.id}</td>
+                      <td>
+                        {item.imageurl && (
+                          <img
+                            src={getImageLink(item.imageurl)}
+                            alt={item.tensp}
+                            className="img-thumbnail"
+                            style={{ maxWidth: "100px", maxHeight: "100px" }}
+                          />
+                        )}
+                      </td>
                       <td>{item.tensp}</td>
                       <td>{item.dvt}</td>
-                      <td>{Number(item.gia).toLocaleString("vi-VN")} VND</td>
+                      <td>
+                        {item.makm ? (
+                          <div>
+                            <div className="fw-bold">
+                              {Number(
+                                item.gia * (1 - item.makm.phantram / 100)
+                              ).toLocaleString("vi-VN")}{" "}
+                              VND
+                            </div>
+                            <del className="text-muted">
+                              {Number(item.gia).toLocaleString("vi-VN")} VND
+                            </del>
+                          </div>
+                        ) : (
+                          <div className="fw-bold">
+                            {Number(item.gia).toLocaleString("vi-VN")} VND
+                          </div>
+                        )}
+                      </td>
                       <td>
                         {item.makm ? (
                           <div>
@@ -551,6 +647,7 @@ const SanPham = () => {
                               className="btn btn-sm btn-outline-danger"
                               onClick={() => handleRemovePromotion(item.id)}
                               title="Xóa khuyến mãi"
+                              disabled={item.status === "unavailable"}
                             >
                               <i className="fas fa-tag"></i>
                             </button>
@@ -559,6 +656,7 @@ const SanPham = () => {
                               className="btn btn-sm btn-outline-info"
                               onClick={() => openPromoModal(item)}
                               title="Thêm khuyến mãi"
+                              disabled={item.status === "unavailable"}
                             >
                               <i className="fas fa-tag"></i>
                             </button>
@@ -689,650 +787,36 @@ const SanPham = () => {
         <Modal.Header closeButton>
           <Modal.Title>Chi tiết sản phẩm</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          {productDetail && (
-            <ListGroup variant="flush">
-              <ListGroup.Item>
-                <strong>Mã sản phẩm:</strong> {productDetail.id}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Tên sản phẩm:</strong> {productDetail.tensp}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Đơn vị tính:</strong> {productDetail.dvt}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Nước sản xuất:</strong> {productDetail.nuocsx}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Giá bán:</strong>{" "}
-                {Number(productDetail.gia).toLocaleString("vi-VN")} VND
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Trạng thái:</strong>{" "}
-                <Badge
-                  bg={
-                    productDetail.status === "available"
-                      ? "success"
-                      : "secondary"
-                  }
-                >
-                  {productDetail.status === "available" ? "Có sẵn" : "Hết hàng"}
-                </Badge>
-              </ListGroup.Item>
-              {productDetail.makm && (
-                <>
-                  <ListGroup.Item className="mt-3">
-                    <strong>Thông tin khuyến mãi:</strong>
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Mã KM:</strong> {productDetail.makm.id}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Nội dung:</strong> {productDetail.makm.noidung}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Giảm giá:</strong>{" "}
-                    <Badge bg="success">{productDetail.makm.phantram}%</Badge>
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Thời gian:</strong>{" "}
-                    {formatDate(productDetail.makm.ngaybd)} -{" "}
-                    {formatDate(productDetail.makm.ngaykt)}
-                  </ListGroup.Item>
-                </>
-              )}
-            </ListGroup>
-          )}
-        </Modal.Body>
-
-        <Modal.Body className="p-4">
-          {productDetail && (
-            <Tabs
-              defaultActiveKey="product"
-              id="product-detail-tabs"
-              className="mb-4"
-              variant="pills"
-              justify
-            >
-              <Tab eventKey="product" title="Thông Tin Sản Phẩm">
-                <Row>
-                  <Col md={8} className="mx-auto">
-                    <dl className="row mt-3">
-                      <dt className="col-sm-4">Mã sản phẩm</dt>
-                      <dd className="col-sm-8">{productDetail.id}</dd>
-                      <dt className="col-sm-4">Tên sản phẩm</dt>
-                      <dd className="col-sm-8">{productDetail.tensp}</dd>
-                      <dt className="col-sm-4">Đơn vị tính</dt>
-                      <dd className="col-sm-8">{productDetail.dvt}</dd>
-                      <dt className="col-sm-4">Nước sản xuất</dt>
-                      <dd className="col-sm-8">{productDetail.nuocsx}</dd>
-                      <dt className="col-sm-4">Giá bán</dt>
-                      <dd className="col-sm-8">
-                        <span className="text-success fw-bold">
-                          {Number(productDetail.gia).toLocaleString("vi-VN")}{" "}
-                          VND
-                        </span>
-                      </dd>
-                      <dt className="col-sm-4">Trạng thái</dt>
-                      <dd className="col-sm-8">
-                        <Badge
-                          bg={
-                            productDetail.status === "available"
-                              ? "success"
-                              : "secondary"
-                          }
-                        >
-                          {productDetail.status === "available"
-                            ? "Có sẵn"
-                            : "Hết hàng"}
-                        </Badge>
-                      </dd>
-                    </dl>
-                  </Col>
-                </Row>
-              </Tab>
-              {productDetail.makm && (
-                <Tab eventKey="promotion" title="Khuyến Mãi">
-                  <Row>
-                    <Col md={8} className="mx-auto">
-                      <dl className="row mt-3">
-                        <dt className="col-sm-4">Mã KM</dt>
-                        <dd className="col-sm-8">{productDetail.makm.id}</dd>
-                        <dt className="col-sm-4">Nội dung</dt>
-                        <dd className="col-sm-8">
-                          {productDetail.makm.noidung}
-                        </dd>
-                        <dt className="col-sm-4">Giảm giá</dt>
-                        <dd className="col-sm-8">
-                          <Badge bg="success">
-                            {productDetail.makm.phantram}%
-                          </Badge>
-                        </dd>
-                        <dt className="col-sm-4">Thời gian</dt>
-                        <dd className="col-sm-8">
-                          {formatDate(productDetail.makm.ngaybd)} -{" "}
-                          {formatDate(productDetail.makm.ngaykt)}
-                        </dd>
-                      </dl>
-                    </Col>
-                  </Row>
-                </Tab>
-              )}
-            </Tabs>
-          )}
-        </Modal.Body>
-
-        <Modal.Body className="p-4">
-          {productDetail && (
-            <Accordion defaultActiveKey="0" flush>
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>
-                  <h5 className="mb-0 text-primary">Thông Tin Sản Phẩm</h5>
-                </Accordion.Header>
-                <Accordion.Body>
-                  <ul className="list-unstyled">
-                    <li className="mb-3 d-flex align-items-center">
-                      <FaBox className="me-2 text-primary" />
-                      <strong className="me-2">Mã sản phẩm:</strong>{" "}
-                      {productDetail.id}
-                    </li>
-                    <li className="mb-3 d-flex align-items-center">
-                      <FaBox className="me-2 text-primary" />
-                      <strong className="me-2">Tên sản phẩm:</strong>{" "}
-                      {productDetail.tensp}
-                    </li>
-                    <li className="mb-3 d-flex align-items-center">
-                      <FaRuler className="me-2 text-primary" />
-                      <strong className="me-2">Đơn vị tính:</strong>{" "}
-                      {productDetail.dvt}
-                    </li>
-                    <li className="mb-3 d-flex align-items-center">
-                      <FaGlobe className="me-2 text-primary" />
-                      <strong className="me-2">Nước sản xuất:</strong>{" "}
-                      {productDetail.nuocsx}
-                    </li>
-                    <li className="mb-3 d-flex align-items-center">
-                      <FaTag className="me-2 text-primary" />
-                      <strong className="me-2">Giá bán:</strong>
-                      <span className="text-success fs-5">
-                        {Number(productDetail.gia).toLocaleString("vi-VN")} VND
-                      </span>
-                    </li>
-                    <li className="mb-3 d-flex align-items-center">
-                      <FaTag className="me-2 text-primary" />
-                      <strong className="me-2">Trạng thái:</strong>
-                      <Badge
-                        bg={
-                          productDetail.status === "available"
-                            ? "success"
-                            : "secondary"
-                        }
-                      >
-                        {productDetail.status === "available"
-                          ? "Có sẵn"
-                          : "Hết hàng"}
-                      </Badge>
-                    </li>
-                  </ul>
-                </Accordion.Body>
-              </Accordion.Item>
-              {productDetail.makm && (
-                <Accordion.Item eventKey="1">
-                  <Accordion.Header>
-                    <h5 className="mb-0 text-success">Thông Tin Khuyến Mãi</h5>
-                  </Accordion.Header>
-                  <Accordion.Body>
-                    <ul className="list-unstyled">
-                      <li className="mb-3 d-flex align-items-center">
-                        <FaTag className="me-2 text-success" />
-                        <strong className="me-2">Mã KM:</strong>{" "}
-                        {productDetail.makm.id}
-                      </li>
-                      <li className="mb-3 d-flex align-items-center">
-                        <FaTag className="me-2 text-success" />
-                        <strong className="me-2">Nội dung:</strong>{" "}
-                        {productDetail.makm.noidung}
-                      </li>
-                      <li className="mb-3 d-flex align-items-center">
-                        <FaTag className="me-2 text-success" />
-                        <strong className="me-2">Giảm giá:</strong>
-                        <Badge bg="success">
-                          {productDetail.makm.phantram}%
-                        </Badge>
-                      </li>
-                      <li className="mb-3 d-flex align-items-center">
-                        <FaCalendar className="me-2 text-success" />
-                        <strong className="me-2">Thời gian:</strong>
-                        {formatDate(productDetail.makm.ngaybd)} -{" "}
-                        {formatDate(productDetail.makm.ngaykt)}
-                      </li>
-                    </ul>
-                  </Accordion.Body>
-                </Accordion.Item>
-              )}
-            </Accordion>
-          )}
-        </Modal.Body>
-
-        <Modal.Body className="p-4">
-          {productDetail && (
-            <>
-              <Card className="shadow-sm mb-4">
-                <Card.Body>
-                  <Row>
-                    <Col md={6}>
-                      <div className="d-flex align-items-center mb-3">
-                        <FaBox className="me-2 text-primary" />
-                        <div>
-                          <strong>Mã sản phẩm:</strong> {productDetail.id}
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center mb-3">
-                        <FaBox className="me-2 text-primary" />
-                        <div>
-                          <strong>Tên sản phẩm:</strong> {productDetail.tensp}
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center mb-3">
-                        <FaRuler className="me-2 text-primary" />
-                        <div>
-                          <strong>Đơn vị tính:</strong> {productDetail.dvt}
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md={6}>
-                      <div className="d-flex align-items-center mb-3">
-                        <FaGlobe className="me-2 text-primary" />
-                        <div>
-                          <strong>Nước sản xuất:</strong> {productDetail.nuocsx}
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center mb-3">
-                        <FaTag className="me-2 text-primary" />
-                        <div>
-                          <strong>Giá bán:</strong>{" "}
-                          <span className="text-success fs-5">
-                            {Number(productDetail.gia).toLocaleString("vi-VN")}{" "}
-                            VND
-                          </span>
-                        </div>
-                      </div>
-                      <div className="d-flex align-items-center mb-3">
-                        <FaTag className="me-2 text-primary" />
-                        <div>
-                          <strong>Trạng thái:</strong>{" "}
-                          <Badge
-                            bg={
-                              productDetail.status === "available"
-                                ? "success"
-                                : "secondary"
-                            }
-                          >
-                            {productDetail.status === "available"
-                              ? "Có sẵn"
-                              : "Hết hàng"}
-                          </Badge>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-              {productDetail.makm && (
-                <Card className="shadow-sm">
-                  <Card.Header className="bg-successKelly text-white">
-                    <h5 className="mb-0">Thông Tin Khuyến Mãi</h5>
-                  </Card.Header>
-                  <Card.Body>
-                    <Row>
-                      <Col md={6}>
-                        <div className="d-flex align-items-center mb-3">
-                          <FaTag className="me-2 text-success" />
-                          <div>
-                            <strong>Mã KM:</strong> {productDetail.makm.id}
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center mb-3">
-                          <FaTag className="me-2 text-success" />
-                          <div>
-                            <strong>Nội dung:</strong>{" "}
-                            {productDetail.makm.noidung}
-                          </div>
-                        </div>
-                      </Col>
-                      <Col md={6}>
-                        <div className="d-flex align-items-center mb-3">
-                          <FaTag className="me-2 text-success" />
-                          <div>
-                            <strong>Giảm giá:</strong>{" "}
-                            <Badge bg="success">
-                              {productDetail.makm.phantram}%
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center mb-3">
-                          <FaCalendar className="me-2 text-success" />
-                          <div>
-                            <strong>Thời gian:</strong>{" "}
-                            {formatDate(productDetail.makm.ngaybd)} -{" "}
-                            {formatDate(productDetail.makm.ngaykt)}
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </Card.Body>
-                </Card>
-              )}
-            </>
-          )}
-        </Modal.Body>
-
-        <Modal.Body>
-          {productDetail && (
-            <div className="row">
-              <div className="col-md-6">
-                <div className="product-image-container bg-light rounded-3 p-4 mb-3">
-                  <div className="ratio ratio-1x1">
-                    <div className="d-flex align-items-center justify-content-center">
-                      <i className="fas fa-box-open fa-5x text-muted"></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-6">
-                <h3 className="fw-bold mb-3">{productDetail.tensp}</h3>
-
-                <div className="d-flex align-items-center mb-3">
-                  <span className="badge bg-primary me-2">
-                    {productDetail.id}
-                  </span>
-                  <span
-                    className={`badge ${
-                      productDetail.status === "available"
-                        ? "bg-success"
-                        : "bg-secondary"
-                    }`}
-                  >
-                    {productDetail.status === "available"
-                      ? "Có sẵn"
-                      : "Hết hàng"}
-                  </span>
-                </div>
-
-                <div className="mb-4">
-                  <h4 className="text-danger fw-bold">{productDetail.gia}</h4>
-                  {productDetail.makm && (
-                    <div className="text-muted">
-                      <del>{productDetail.gia}</del>
-                      <span className="ms-2 badge bg-success">
-                        Tiết kiệm {productDetail.makm.phantram}%
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="product-details mb-4">
-                  <div className="d-flex mb-2">
-                    <span
-                      className="text-muted me-2"
-                      style={{ width: "120px" }}
-                    >
-                      Đơn vị tính:
-                    </span>
-                    <span>{productDetail.dvt}</span>
-                  </div>
-                  <div className="d-flex mb-2">
-                    <span
-                      className="text-muted me-2"
-                      style={{ width: "120px" }}
-                    >
-                      Xuất xứ:
-                    </span>
-                    <span>{productDetail.nuocsx}</span>
-                  </div>
-                </div>
-
-                {productDetail.makm && (
-                  <div className="promo-section p-3 bg-light rounded-3 mb-4">
-                    <h5 className="fw-bold mb-3">Khuyến mãi</h5>
-                    <div className="d-flex align-items-center mb-2">
-                      <i className="fas fa-tag me-2 text-success"></i>
-                      <span>{productDetail.makm.noidung}</span>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      <i className="far fa-calendar-alt me-2 text-success"></i>
-                      <span>
-                        {formatDate(productDetail.makm.ngaybd)} -{" "}
-                        {formatDate(productDetail.makm.ngaykt)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </Modal.Body>
-
-        <Modal.Body>
-          {productDetail && (
-            <>
-              <div className="d-flex align-items-start mb-4">
-                <div className="flex-shrink-0 me-4">
-                  <div
-                    className="bg-light rounded-3 p-4"
-                    style={{ width: "120px", height: "120px" }}
-                  >
-                    <div className="d-flex align-items-center justify-content-center h-100">
-                      <i className="fas fa-box text-muted fa-3x"></i>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-grow-1">
-                  <h4 className="fw-bold mb-2">{productDetail.tensp}</h4>
-                  <div className="d-flex align-items-center mb-2">
-                    <span className="badge bg-primary me-2">
-                      {productDetail.id}
-                    </span>
-                    <span
-                      className={`badge ${
-                        productDetail.status === "available"
-                          ? "bg-success"
-                          : "bg-secondary"
-                      }`}
-                    >
-                      {productDetail.status === "available"
-                        ? "Có sẵn"
-                        : "Hết hàng"}
-                    </span>
-                  </div>
-                  <h5 className="text-danger fw-bold mb-3">
-                    {productDetail.gia}
-                    {productDetail.makm && (
-                      <span className="ms-2 badge bg-success">
-                        -{productDetail.makm.phantram}%
-                      </span>
-                    )}
-                  </h5>
-                </div>
-              </div>
-
-              <nav>
-                <div className="nav nav-tabs" id="nav-tab" role="tablist">
-                  <button
-                    className="nav-link active"
-                    id="nav-info-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#nav-info"
-                    type="button"
-                    role="tab"
-                    aria-controls="nav-info"
-                    aria-selected="true"
-                  >
-                    Thông tin
-                  </button>
-                  {productDetail.makm && (
-                    <button
-                      className="nav-link"
-                      id="nav-promo-tab"
-                      data-bs-toggle="tab"
-                      data-bs-target="#nav-promo"
-                      type="button"
-                      role="tab"
-                      aria-controls="nav-promo"
-                      aria-selected="false"
-                    >
-                      Khuyến mãi
-                    </button>
-                  )}
-                </div>
-              </nav>
-              <div
-                className="tab-content p-3 border border-top-0 rounded-bottom"
-                id="nav-tabContent"
-              >
-                <div
-                  className="tab-pane fade show active"
-                  id="nav-info"
-                  role="tabpanel"
-                  aria-labelledby="nav-info-tab"
-                >
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="text-muted small">Đơn vị tính</label>
-                        <p>{productDetail.dvt}</p>
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="mb-3">
-                        <label className="text-muted small">Xuất xứ</label>
-                        <p>{productDetail.nuocsx}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {productDetail.makm && (
-                  <div
-                    className="tab-pane fade"
-                    id="nav-promo"
-                    role="tabpanel"
-                    aria-labelledby="nav-promo-tab"
-                  >
-                    <div className="promo-details">
-                      <div className="d-flex align-items-center mb-3">
-                        <i className="fas fa-tag me-3 text-success fa-lg"></i>
-                        <div>
-                          <h6 className="fw-bold mb-1">
-                            {productDetail.makm.noidung}
-                          </h6>
-                          <p className="mb-1">
-                            Giảm {productDetail.makm.phantram}%
-                          </p>
-                          <small className="text-muted">
-                            {formatDate(productDetail.makm.ngaybd)} -{" "}
-                            {formatDate(productDetail.makm.ngaykt)}
-                          </small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </Modal.Body>
-
-        <Modal.Body className="p-4">
-          {productDetail && (
-            <div className="text-center">
-              <div className="mb-4">
-                <div className="bg-light rounded-circle p-4 d-inline-block">
-                  <i className="fas fa-box-open fa-3x text-primary"></i>
-                </div>
-              </div>
-
-              <h4 className="fw-bold mb-2">{productDetail.tensp}</h4>
-              <p className="text-muted mb-3">{productDetail.id}</p>
-
-              <div className="d-flex justify-content-center align-items-center mb-4">
-                <h5 className="fw-bold text-danger mb-0 me-2">
-                  {productDetail.gia}
-                </h5>
-                {productDetail.makm && (
-                  <span className="badge bg-success">
-                    -{productDetail.makm.phantram}%
-                  </span>
-                )}
-              </div>
-
-              <div className="text-start mb-4">
-                <div className="d-flex mb-2">
-                  <span className="text-muted" style={{ width: "100px" }}>
-                    Đơn vị:
-                  </span>
-                  <span>{productDetail.dvt}</span>
-                </div>
-                <div className="d-flex mb-2">
-                  <span className="text-muted" style={{ width: "100px" }}>
-                    Xuất xứ:
-                  </span>
-                  <span>{productDetail.nuocsx}</span>
-                </div>
-                <div className="d-flex">
-                  <span className="text-muted" style={{ width: "100px" }}>
-                    Trạng thái:
-                  </span>
-                  <span
-                    className={`badge ${
-                      productDetail.status === "available"
-                        ? "bg-success"
-                        : "bg-secondary"
-                    }`}
-                  >
-                    {productDetail.status === "available"
-                      ? "Có sẵn"
-                      : "Hết hàng"}
-                  </span>
-                </div>
-              </div>
-
-              {productDetail.makm && (
-                <div className="alert alert-success text-start">
-                  <h6 className="fw-bold mb-2">
-                    <i className="fas fa-tag me-2"></i>
-                    {productDetail.makm.noidung}
-                  </h6>
-                  <p className="small mb-1">
-                    Giảm {productDetail.makm.phantram}% giá sản phẩm
-                  </p>
-                  <p className="small text-muted mb-0">
-                    Áp dụng từ {formatDate(productDetail.makm.ngaybd)} đến{" "}
-                    {formatDate(productDetail.makm.ngaykt)}
-                  </p>
-                </div>
-              )}
-
-              <button
-                className="btn btn-outline-primary w-100 mt-3"
-                onClick={() => setShowDetailModal(false)}
-              >
-                Đóng
-              </button>
-            </div>
-          )}
-        </Modal.Body>
-
         <Modal.Body className="p-0">
           {productDetail && (
             <div className="row g-0">
               <div className="col-md-6 bg-light">
                 <div className="h-100 d-flex align-items-center justify-content-center p-4">
-                  {/* Thay thế bằng hình ảnh thực tế nếu có */}
-                  <div className="text-center">
-                    <i className="fas fa-box-open fa-6x text-muted mb-3"></i>
-                    <p className="text-muted">Hình ảnh sản phẩm</p>
+                  <div className="card border-0 w-100 h-100">
+                    <div className="card-img-container position-relative overflow-hidden h-100">
+                      {productDetail.imageurl ? (
+                        <img
+                          src={getImageLink(productDetail.imageurl)}
+                          className="img-fluid img-hover-effect"
+                          alt={productDetail.tensp}
+                          style={{
+                            borderRadius: "30px",
+                            objectFit: "contain",
+                            padding: "20px",
+                            width: "100%",
+                            height: "100%",
+                            transition: "all 0.3s ease",
+                            cursor: "pointer",
+                          }}
+                        />
+                      ) : (
+                        <div className="d-flex flex-column align-items-center justify-content-center h-100">
+                          <i className="fas fa-box-open fa-6x text-muted mb-3"></i>
+                          <p className="text-muted">Không có hình ảnh</p>
+                        </div>
+                      )}
+                      <div className="img-overlay"></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1341,23 +825,34 @@ const SanPham = () => {
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <div>
                       <h3 className="fw-bold mb-1">{productDetail.tensp}</h3>
-                      <p className="text-muted small">{productDetail.id}</p>
+                      <p className="text-muted small">
+                        {productDetail.id}
+                      </p>
                     </div>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      onClick={() => setShowDetailModal(false)}
-                    ></button>
                   </div>
 
                   <div className="d-flex align-items-center mb-4">
-                    <h4 className="text-danger fw-bold mb-0 me-3">
-                      {productDetail.gia}
-                    </h4>
-                    {productDetail.makm && (
-                      <span className="badge bg-success py-2">
-                        Tiết kiệm {productDetail.makm.phantram}%
-                      </span>
+                    {productDetail.makm ? (
+                      <>
+                        <h4 className="text-danger fw-bold mb-0 me-3">
+                          {Number(
+                            productDetail.gia *
+                              (1 - productDetail.makm.phantram / 100)
+                          ).toLocaleString("vi-VN")}{" "}
+                          VND
+                        </h4>
+                        <del className="text-muted me-2">
+                          {Number(productDetail.gia).toLocaleString("vi-VN")}{" "}
+                          VND
+                        </del>
+                        <span className="badge bg-success py-2">
+                          Tiết kiệm {productDetail.makm.phantram}%
+                        </span>
+                      </>
+                    ) : (
+                      <h4 className="text-danger fw-bold mb-0">
+                        {Number(productDetail.gia).toLocaleString("vi-VN")} VND
+                      </h4>
                     )}
                   </div>
 
@@ -1385,7 +880,7 @@ const SanPham = () => {
                           className={`badge ${
                             productDetail.status === "available"
                               ? "bg-success"
-                              : "bg-secondary"
+                              : "bg-danger"
                           }`}
                         >
                           {productDetail.status === "available"
@@ -1422,120 +917,16 @@ const SanPham = () => {
                       </div>
                     </div>
                   )}
-
-                  <button
-                    className="btn btn-outline-secondary w-100"
-                    onClick={() => setShowDetailModal(false)}
-                  >
-                    Đóng
-                  </button>
                 </div>
               </div>
             </div>
           )}
         </Modal.Body>
-
-        <Modal.Body>
-          {productDetail && (
-            <div className="row">
-              <div className="col-md-5">
-                <div className="card border-0 shadow-sm h-100">
-                  <div className="card-body d-flex flex-column">
-                    <div className="text-center mb-4 flex-grow-1 d-flex align-items-center justify-content-center">
-                      <div>
-                        <div className="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
-                          <i className="fas fa-box fa-3x text-primary"></i>
-                        </div>
-                        <h5 className="fw-bold">{productDetail.tensp}</h5>
-                        <p className="text-muted">{productDetail.id}</p>
-                      </div>
-                    </div>
-
-                    <div className="d-flex justify-content-between align-items-center border-top pt-3">
-                      <div>
-                        <h4 className="fw-bold text-danger mb-0">
-                          {productDetail.gia}
-                        </h4>
-                        {productDetail.makm && (
-                          <small className="text-success">
-                            Đang giảm {productDetail.makm.phantram}%
-                          </small>
-                        )}
-                      </div>
-                      <span
-                        className={`badge ${
-                          productDetail.status === "available"
-                            ? "bg-success"
-                            : "bg-secondary"
-                        }`}
-                      >
-                        {productDetail.status === "available"
-                          ? "Có sẵn"
-                          : "Hết hàng"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-md-7">
-                <div className="card border-0 shadow-sm h-100">
-                  <div className="card-body">
-                    <h6 className="fw-bold mb-3">Thông tin cơ bản</h6>
-
-                    <div className="row mb-3">
-                      <div className="col-6">
-                        <label className="text-muted small d-block">
-                          Đơn vị tính
-                        </label>
-                        <p className="fw-medium">{productDetail.dvt}</p>
-                      </div>
-                      <div className="col-6">
-                        <label className="text-muted small d-block">
-                          Xuất xứ
-                        </label>
-                        <p className="fw-medium">{productDetail.nuocsx}</p>
-                      </div>
-                    </div>
-
-                    {productDetail.makm && (
-                      <>
-                        <h6 className="fw-bold mb-3">Thông tin khuyến mãi</h6>
-                        <div className="alert alert-success bg-opacity-10 border-0">
-                          <div className="d-flex align-items-start">
-                            <div className="flex-shrink-0 text-success">
-                              <i className="fas fa-tag"></i>
-                            </div>
-                            <div className="flex-grow-1 ms-3">
-                              <h6 className="alert-heading fw-bold">
-                                {productDetail.makm.noidung}
-                              </h6>
-                              <div className="d-flex align-items-center mb-1">
-                                <span className="badge bg-success me-2">
-                                  -{productDetail.makm.phantram}%
-                                </span>
-                                <small className="text-muted">
-                                  {formatDate(productDetail.makm.ngaybd)} -{" "}
-                                  {formatDate(productDetail.makm.ngaykt)}
-                                </small>
-                              </div>
-                              <small className="text-muted">
-                                Áp dụng cho sản phẩm này
-                              </small>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </Modal.Body>
-
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setShowDetailModal(false)}
+          >
             Đóng
           </Button>
         </Modal.Footer>

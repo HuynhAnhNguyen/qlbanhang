@@ -61,23 +61,29 @@ export const updateSanPham = async (token, maSP, sanphamData) => {
 
 // Thêm khuyến mãi
 export const addKhuyenMai = async (token, maSP, maKM) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/sanpham/addKhuyenmai?maSP=${maSP}&maKM=${maKM}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/sanpham/addKhuyenmai?maSP=${maSP}&maKM=${maKM}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
 // Xóa khuyến mãi
 export const removeKhuyenMai = async (token, maSP) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/sanpham/removeKhuyenmai?maSP=${maSP}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/sanpham/removeKhuyenmai?maSP=${maSP}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
@@ -94,37 +100,45 @@ export const fetchKhuyenMai = async (token) => {
 
 // Lấy danh sách khuyến mãi Available
 export const fetchKhuyenMaiAvailable = async (token) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/khuyenmai/findAvailable`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/khuyenmai/findAvailable`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
 // Get sanpham by id
 export const getSanPhamById = async (token, maSP) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/sanpham/findByMaSP?maSP=${maSP}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/sanpham/findByMaSP?maSP=${maSP}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
 // Fetch Khuyen Mai by Id
 export const fetchKhuyenMaiById = async (token, maKM) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/khuyenmai/findByMaKM?maKM=${maKM}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/khuyenmai/findByMaKM?maKM=${maKM}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
-
 
 // Thêm khuyen mai
 export const createKhuyenMai = async (token, khuyenmaiData) => {
@@ -199,12 +213,15 @@ export const updateKhachHang = async (token, maKH, khachhangData) => {
 
 // Fetch khach hang by id
 export const fetchKhachHangById = async (token, maKH) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/khachhang/findByMaKH?maKH=${maKH}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/khachhang/findByMaKH?maKH=${maKH}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
@@ -221,7 +238,6 @@ export const deleteKhachHang = async (token, maKH) => {
   );
   return await response.data;
 };
-
 
 // Lấy danh sách nhân viên
 export const fetchNhanVien = async (token) => {
@@ -266,12 +282,15 @@ export const updateNhanVien = async (token, maNV, nhanvienData) => {
 
 // Fetch nhan vien by id
 export const fetchNhanVienById = async (token, maNV) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/nhanvien/findByMaNV?maNV=${maNV}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/nhanvien/findByMaNV?maNV=${maNV}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
@@ -291,23 +310,29 @@ export const deleteNhanVien = async (token, maNV) => {
 
 // Fetch all roles
 export const fetchRole = async (token) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/nhanvien/findAllRole`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/nhanvien/findAllRole`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
 // Fetch nhan vien by id
 export const fetchLogByNhanVienId = async (token, maNV) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/log/findByMaNV?maNV=${maNV}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/log/findByMaNV?maNV=${maNV}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
@@ -335,36 +360,61 @@ export const fetchHoaDon = async (token) => {
 
 // Fetch hoa don by khach hang id
 export const fetchHoaDonByKhachHangId = async (token, maKH) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/hoadon/findByMaKH?maKH=${maKH}`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/hoadon/findByMaKH?maKH=${maKH}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
 // Create a new invoice
 export const createHoaDon = async (token, invoiceData) => {
   const response = await axios.post(
-      `${REACT_APP_API_URL}/hoadon/create`,
-      {
-        maKH: invoiceData.maKH,
-        maNV: invoiceData.maNV,
-        sanpham: invoiceData.sanpham.map((item) => ({
-          maSP: item.maSP,
-          soluong: item.soluong,
-        })),
+    `${REACT_APP_API_URL}/hoadon/create`,
+    {
+      maKH: invoiceData.maKH,
+      maNV: invoiceData.maNV,
+      sanpham: invoiceData.sanpham.map((item) => ({
+        maSP: item.maSP,
+        soluong: item.soluong,
+      })),
+    },
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
       },
-      {
-        headers: {
-          Authorization: `${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data;
+    }
+  );
+  return response.data;
 };
+
+// Upload hình ảnh
+export const uploadImage = async (token, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axios.post(
+    `${REACT_APP_API_URL}/file/uploadImage`,
+    formData,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  console.log(response.data);
+  return response.data;
+};
+
+
+
 
 
 
@@ -702,26 +752,6 @@ export const deleteQuyetDinh = async (token, quyetDinhId) => {
   );
   // console.log(response.data);
   return await response.data;
-};
-
-export const uploadFile = async (token, file) => {
-  try {
-    const response = await axios.post(
-      `${REACT_APP_API_URL}/file/uploadFile`,
-      file,
-      {
-        headers: {
-          Authorization: `${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    return await response.data;
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    throw error;
-  }
 };
 
 export const downloadFile = async (token, filename) => {
@@ -1171,7 +1201,7 @@ export const fetchHoSoById = async (token, hosoId) => {
 // Fetch Tin tức theo id
 export const fetchTinTucById = async (tintucId) => {
   const response = await axios.get(
-    `${REACT_APP_API_URL}/auth/tintuc/findById?tintucId=${tintucId}`,
+    `${REACT_APP_API_URL}/auth/tintuc/findById?tintucId=${tintucId}`
   );
   return response.data;
 };
@@ -1187,11 +1217,10 @@ export const fetchThongKe = async (token) => {
   return response.data;
 };
 
-
 // fetchApprovedNews
 export const fetchApprovedNews = async () => {
   const response = await axios.get(
-    `${REACT_APP_API_URL}/auth/tintuc/findApproved`,
+    `${REACT_APP_API_URL}/auth/tintuc/findApproved`
   );
   return response.data;
 };
