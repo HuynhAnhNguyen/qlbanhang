@@ -9,14 +9,17 @@ import {
   ListGroup,
 } from "react-bootstrap";
 import { FaHistory, FaUser, FaClock, FaTasks } from "react-icons/fa";
-import Swal from "sweetalert2";
-import { fetchLog, fetchLogByNhanVienId, fetchNhanVien } from "../services/apiService";
-
+import {
+  fetchLog,
+  fetchLogByNhanVienId,
+  fetchNhanVien,
+} from "../services/apiService";
 
 const LichSu = () => {
   const [logList, setLogList] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState("all");
+  const [searchType, setSearchType] = useState("all");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -80,14 +83,25 @@ const LichSu = () => {
     }
   };
 
+  // Handle search type change
+  const handleSearchTypeChange = (e) => {
+    const type = e.target.value;
+    setSearchType(type);
+    setSelectedEmployeeId("");
+    setCurrentPage(1);
+
+    if (type === "all") {
+      loadAllLogs();
+    }
+  };
+
   // Handle employee selection change
   const handleEmployeeChange = (e) => {
     const maNV = e.target.value;
-    setSelectedEmployee(maNV);
+    setSelectedEmployeeId(maNV);
     setCurrentPage(1);
-    if (maNV === "all") {
-      loadAllLogs();
-    } else {
+
+    if (maNV) {
       loadLogsByMaNV(maNV);
     }
   };
@@ -118,13 +132,106 @@ const LichSu = () => {
   };
 
   // Parse JSON values safely
-  const parseJsonValue = (value) => {
-    if (!value) return "Không có";
+  // Parse JSON values safely and display in a user-friendly format
+  const parseJsonValue = (value, doituong, hanhdong) => {
+    if (!value) return <span className="text-muted">Không có</span>;
+
     try {
       const parsed = JSON.parse(value);
-      return JSON.stringify(parsed, null, 2);
+      switch (doituong) {
+        case "SANPHAM":
+          return (
+            <div>
+              <p>
+                <strong>Mã sản phẩm:</strong> {parsed.id}
+              </p>
+              <p>
+                <strong>Tên sản phẩm:</strong> {parsed.tensp}
+              </p>
+              <p>
+                <strong>Đơn vị tính:</strong> {parsed.dvt}
+              </p>
+              <p>
+                <strong>Nước sản xuất:</strong> {parsed.nuocsx}
+              </p>
+              <p>
+                <strong>Giá:</strong>{" "}
+                {Number(parsed.gia).toLocaleString("vi-VN")} VND
+              </p>
+              {parsed.makm ? (
+                <div>
+                  <p>
+                    <strong>Khuyến mãi:</strong> {parsed.makm.noidung} (Giảm{" "}
+                    {parsed.makm.phantram}%)
+                  </p>
+                  <p>
+                    <strong>Thời gian khuyến mãi:</strong> {parsed.makm.ngaybd}{" "}
+                    - {parsed.makm.ngaykt}
+                  </p>
+                </div>
+              ) : (
+                <p>
+                  <strong>Khuyến mãi:</strong> Không có
+                </p>
+              )}
+              <p>
+                <strong>Trạng thái:</strong>{" "}
+                {parsed.status === "available" ? "Có sẵn" : "Hết hàng"}
+              </p>
+              <p>
+                <strong>Hình ảnh:</strong> {parsed.imageurl ? "Có" : "Không có"}
+              </p>
+            </div>
+          );
+        case "KHUYENMAI":
+          return (
+            <div>
+              <p>
+                <strong>Mã khuyến mãi:</strong> {parsed.id}
+              </p>
+              <p>
+                <strong>Nội dung:</strong> {parsed.noidung}
+              </p>
+              <p>
+                <strong>Phần trăm giảm:</strong> {parsed.phantram}%
+              </p>
+              <p>
+                <strong>Thời gian:</strong> {parsed.ngaybd} - {parsed.ngaykt}
+              </p>
+              <p>
+                <strong>Trạng thái:</strong> {parsed.status}
+              </p>
+            </div>
+          );
+        case "NHANVIEN":
+          return (
+            <div>
+              <p>
+                <strong>Mã nhân viên:</strong> {parsed.id}
+              </p>
+              <p>
+                <strong>Họ tên:</strong> {parsed.hoten}
+              </p>
+              <p>
+                <strong>Số điện thoại:</strong> {parsed.sodt}
+              </p>
+              <p>
+                <strong>Ngày vào làm:</strong> {parsed.ngvl}
+              </p>
+              <p>
+                <strong>Vai trò:</strong> {parsed.roleid.rolename}
+              </p>
+              <p>
+                <strong>Trạng thái:</strong>{" "}
+                {parsed.status === "active" ? "Hoạt động" : "Không hoạt động"}
+              </p>
+            </div>
+          );
+        default:
+          return <pre>{JSON.stringify(parsed, null, 2)}</pre>;
+      }
     } catch {
-      return value;
+      return <span>{value}</span>;
     }
   };
 
@@ -134,20 +241,29 @@ const LichSu = () => {
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
           <h1 className="h3 mb-3 mb-md-0">Lịch sử thao tác</h1>
           <div className="d-flex gap-2 align-items-center">
-            <Form.Group style={{ width: "100%", maxWidth: "450px" }}>
-              <Form.Label>Chọn nhân viên</Form.Label>
+            <Form.Select
+              value={searchType}
+              onChange={handleSearchTypeChange}
+              style={{ width: "200px" }}
+            >
+              <option value="all">Tất cả</option>
+              <option value="employee">Theo nhân viên</option>
+            </Form.Select>
+
+            {searchType === "employee" && (
               <Form.Select
-                value={selectedEmployee}
+                value={selectedEmployeeId}
                 onChange={handleEmployeeChange}
+                style={{ width: "200px" }}
               >
-                <option value="all">Tất cả</option>
+                <option value="">Chọn nhân viên</option>
                 {employeeList.map((employee) => (
                   <option key={employee.id} value={employee.id}>
                     {employee.hoten} ({employee.id})
                   </option>
                 ))}
               </Form.Select>
-            </Form.Group>
+            )}
           </div>
         </div>
 
@@ -161,8 +277,16 @@ const LichSu = () => {
 
         {error && <div className="alert alert-danger">{error}</div>}
 
-        {currentItems.length === 0 ? (
-          <div className="text-center py-4 text-muted">
+        {searchType === "employee" && !selectedEmployeeId ? (
+          <div className="text-center py-4 color-black">
+            Vui lòng chọn nhân viên để xem lịch sử
+          </div>
+        ) : searchType === "employee" && currentItems.length === 0 ? (
+          <div className="text-center py-4 color-black">
+            Nhân viên này không có lịch sử thao tác
+          </div>
+        ) : currentItems.length === 0 ? (
+          <div className="text-center py-4 color-black">
             Không tìm thấy lịch sử thao tác nào!
           </div>
         ) : (
@@ -200,7 +324,9 @@ const LichSu = () => {
                         </Badge>
                       </td>
                       <td>{item.doituong}</td>
-                      <td>{parseJsonValue(item.giatriCu).substring(0, 50)}...</td>
+                      <td>
+                        {parseJsonValue(item.giatriCu).substring(0, 50)}...
+                      </td>
                       <td>
                         <button
                           className="btn btn-sm btn-outline-primary btn-outline-primary-detail"
@@ -217,9 +343,9 @@ const LichSu = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="d-flex justify-content-center">
+              <div className="mt-auto p-3 bg-light border-top">
                 <nav aria-label="Page navigation">
-                  <ul className="pagination">
+                  <ul className="pagination justify-content-center mb-0">
                     <li
                       className={`page-item ${
                         currentPage === 1 ? "disabled" : ""
@@ -232,7 +358,7 @@ const LichSu = () => {
                         }
                         disabled={currentPage === 1}
                       >
-                        «
+                        « Trước
                       </button>
                     </li>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(
@@ -266,7 +392,7 @@ const LichSu = () => {
                         }
                         disabled={currentPage === totalPages}
                       >
-                        »
+                        Tiếp »
                       </button>
                     </li>
                   </ul>
@@ -286,7 +412,7 @@ const LichSu = () => {
         <Modal.Header closeButton>
           <Modal.Title>Chi tiết lịch sử thao tác</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        {/* <Modal.Body>
           {selectedLog && (
             <ListGroup variant="flush">
               <ListGroup.Item>
@@ -328,6 +454,88 @@ const LichSu = () => {
                 {parseJsonValue(selectedLog.giatriMoi)}
               </ListGroup.Item>
             </ListGroup>
+          )}
+        </Modal.Body> */}
+        <Modal.Body>
+          {selectedLog && (
+            <div>
+              <ListGroup variant="flush">
+                <ListGroup.Item>
+                  <FaHistory className="me-2" />
+                  <strong>ID:</strong> {selectedLog.id}
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <FaClock className="me-2" />
+                  <strong>Ngày giờ:</strong>{" "}
+                  {formatDateTime(selectedLog.ngaygio)}
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <FaUser className="me-2" />
+                  <strong>Người thực hiện:</strong> {selectedLog.nguoithuchien}
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <FaTasks className="me-2" />
+                  <strong>Hành động:</strong>{" "}
+                  <Badge
+                    bg={
+                      selectedLog.hanhdong === "LOGIN"
+                        ? "success"
+                        : selectedLog.hanhdong === "DELETE"
+                        ? "danger"
+                        : selectedLog.hanhdong === "UPDATE"
+                        ? "warning"
+                        : selectedLog.hanhdong.includes("KHUYENMAI")
+                        ? "info"
+                        : "primary"
+                    }
+                  >
+                    {selectedLog.hanhdong === "LOGIN"
+                      ? "Đăng nhập"
+                      : selectedLog.hanhdong === "UPDATE"
+                      ? "Cập nhật"
+                      : selectedLog.hanhdong === "ADD_KHUYENMAI"
+                      ? "Thêm khuyến mãi"
+                      : selectedLog.hanhdong === "REMOVE_KHUYENMAI"
+                      ? "Xóa khuyến mãi"
+                      : selectedLog.hanhdong}
+                  </Badge>
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  <strong>Đối tượng:</strong>{" "}
+                  {selectedLog.doituong === "SANPHAM"
+                    ? "Sản phẩm"
+                    : selectedLog.doituong === "KHUYENMAI"
+                    ? "Khuyến mãi"
+                    : selectedLog.doituong === "NHANVIEN"
+                    ? "Nhân viên"
+                    : selectedLog.doituong}
+                </ListGroup.Item>
+              </ListGroup>
+              {selectedLog.hanhdong !== "LOGIN" && (
+                <Row className="mt-3">
+                  <Col md={6}>
+                    <h6>
+                      <strong>Giá trị cũ</strong>
+                    </h6>
+                    {parseJsonValue(
+                      selectedLog.giatriCu,
+                      selectedLog.doituong,
+                      selectedLog.hanhdong
+                    )}
+                  </Col>
+                  <Col md={6}>
+                    <h6>
+                      <strong>Giá trị mới</strong>
+                    </h6>
+                    {parseJsonValue(
+                      selectedLog.giatriMoi,
+                      selectedLog.doituong,
+                      selectedLog.hanhdong
+                    )}
+                  </Col>
+                </Row>
+              )}
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>

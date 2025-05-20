@@ -154,7 +154,7 @@ const Sidebar = () => {
               onClick={() => navigate("/quan-ly-lich-su")}
             >
               <i className="fa-solid fa-clock-rotate-left"></i>
-              <span className="align-middle">Quản lý lịch sử truy cập</span>
+              <span className="align-middle">Quản lý lịch sử thao tác</span>
             </a>
           </li>
 

@@ -8,10 +8,13 @@ import {
   Badge,
   ListGroup,
 } from "react-bootstrap";
-import { FaTag, FaCalendar } from "react-icons/fa";
 import Swal from "sweetalert2";
-import { createKhuyenMai, fetchKhuyenMai, fetchKhuyenMaiById, updateKhuyenMai } from "../services/apiService";
-
+import {
+  createKhuyenMai,
+  fetchKhuyenMai,
+  fetchKhuyenMaiById,
+  updateKhuyenMai,
+} from "../services/apiService";
 
 const KhuyenMai = () => {
   const [promoList, setPromoList] = useState([]);
@@ -596,6 +599,8 @@ const KhuyenMai = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      
     </div>
   );
 };
