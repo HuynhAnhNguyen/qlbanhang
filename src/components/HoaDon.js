@@ -9,17 +9,30 @@ import {
   ListGroup,
   Table,
 } from "react-bootstrap";
-import { FaFileInvoice, FaUser, FaClock, FaDollarSign, FaShoppingCart } from "react-icons/fa";
+import {
+  FaFileInvoice,
+  FaUser,
+  FaClock,
+  FaDollarSign,
+  FaShoppingCart,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
-import { createHoaDon, fetchHoaDon, fetchHoaDonByKhachHangId, fetchKhachHang, fetchNhanVien, fetchSanPham } from "../services/apiService";
-
+import {
+  createHoaDon,
+  fetchHoaDon,
+  fetchHoaDonByKhachHangId,
+  fetchKhachHang,
+  fetchNhanVien,
+  fetchSanPham,
+} from "../services/apiService";
 
 const HoaDon = () => {
   const [invoiceList, setInvoiceList] = useState([]);
   const [customerList, setCustomerList] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
   const [productList, setProductList] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState("all");
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [searchType, setSearchType] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,7 +48,7 @@ const HoaDon = () => {
   const [formData, setFormData] = useState({
     maKH: "",
     maNV: "",
-    sanpham: [],
+    sanpham: [{ maSP: "", soluong: 1 }],
   });
 
   const token = localStorage.getItem("token");
@@ -50,12 +63,29 @@ const HoaDon = () => {
     if (!formData.maNV) {
       errors.maNV = "Nhân viên là bắt buộc";
     }
-    if (formData.sanpham.length === 0) {
+    if (
+      formData.sanpham.length === 0 ||
+      formData.sanpham.some((item) => !item.maSP)
+    ) {
       errors.sanpham = "Phải chọn ít nhất một sản phẩm";
     }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  // Tính tổng giá trị đơn hàng
+  const calculateTotal = () => {
+    return formData.sanpham.reduce((total, item) => {
+      const product = productList.find((p) => p.id === item.maSP);
+      if (!product) return total;
+
+      const price = product.makm
+        ? product.gia * (1 - product.makm.phantram / 100)
+        : product.gia;
+
+      return total + price * item.soluong;
+    }, 0);
   };
 
   // Fetch all invoices
@@ -140,61 +170,104 @@ const HoaDon = () => {
 
   // Handle customer selection change
   const handleCustomerChange = (e) => {
-    const maKH = e.target.value;
-    setSelectedCustomer(maKH);
+    const selectedId = e.target.value;
+    const customer = customerList.find((item) => item.id == selectedId);
+    setSelectedCustomer(customer || null);
     setCurrentPage(1);
-    if (maKH === "all") {
+    if (!selectedId) {
       loadAllInvoices();
     } else {
-      loadInvoicesByMaKH(maKH);
+      loadInvoicesByMaKH(selectedId);
     }
   };
 
-  // Add product to invoice
-  const addProduct = (maSP) => {
-    const existingProduct = formData.sanpham.find((item) => item.maSP === maSP);
-    if (existingProduct) {
+  // Hàm thêm sản phẩm mới
+  const addProduct = (maSP = "") => {
+    if (!maSP) {
+      // Nếu không có mã SP (click nút thêm mới)
       setFormData((prev) => ({
         ...prev,
-        sanpham: prev.sanpham.map((item) =>
-          item.maSP === maSP ? { ...item, soluong: item.soluong + 1 } : item
-        ),
+        sanpham: [...prev.sanpham, { maSP: "", soluong: 1 }],
       }));
+      return;
+    }
+
+    // Tìm xem sản phẩm đã có trong danh sách chưa
+    const existingIndex = formData.sanpham.findIndex(
+      (item) => item.maSP === maSP
+    );
+
+    if (existingIndex >= 0) {
+      // Nếu đã có thì tăng số lượng lên 1
+      updateProductQuantity(
+        existingIndex,
+        "soluong",
+        formData.sanpham[existingIndex].soluong + 1
+      );
+
+      // Reset dòng mới thêm (nếu có)
+      const lastIndex = formData.sanpham.length - 1;
+      if (formData.sanpham[lastIndex].maSP === "") {
+        removeProduct(lastIndex);
+      }
     } else {
+      // Nếu chưa có thì thêm mới và reset dòng trống (nếu có)
+      const newSanpham = formData.sanpham.filter((item) => item.maSP !== "");
       setFormData((prev) => ({
         ...prev,
-        sanpham: [...prev.sanpham, { maSP, soluong: 1 }],
+        sanpham: [...newSanpham, { maSP, soluong: 1 }],
       }));
     }
   };
 
-  // Update product quantity
-  const updateProductQuantity = (maSP, soluong) => {
-    if (soluong <= 0) {
-      setFormData((prev) => ({
-        ...prev,
-        sanpham: prev.sanpham.filter((item) => item.maSP !== maSP),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        sanpham: prev.sanpham.map((item) =>
-          item.maSP === maSP ? { ...item, soluong } : item
-        ),
-      }));
-    }
+  // Hàm cập nhật thông tin sản phẩm
+  const updateProductQuantity = (index, field, value) => {
+    setFormData((prev) => {
+      const newSanpham = [...prev.sanpham];
+      if (field === "soluong") {
+        newSanpham[index] = {
+          ...newSanpham[index],
+          soluong: Math.max(1, parseInt(value) || 1), // Đảm bảo số lượng ít nhất là 1
+        };
+      } else {
+        // Khi thay đổi sản phẩm
+        const existingIndex = newSanpham.findIndex(
+          (item, idx) => item.maSP === value && idx !== index
+        );
+
+        if (existingIndex >= 0) {
+          // Nếu sản phẩm đã có trong danh sách
+          newSanpham[existingIndex] = {
+            ...newSanpham[existingIndex],
+            soluong:
+              newSanpham[existingIndex].soluong +
+              (newSanpham[index].soluong || 1),
+          };
+          // Xóa dòng hiện tại
+          // newSanpham.splice(index, 1);
+        } else {
+          // Nếu sản phẩm chưa có
+          newSanpham[index] = {
+            maSP: value,
+            soluong: newSanpham[index].soluong || 1,
+          };
+        }
+      }
+      return { ...prev, sanpham: newSanpham };
+    });
   };
 
   // Remove product from invoice
-  const removeProduct = (maSP) => {
+  const removeProduct = (index) => {
     setFormData((prev) => ({
       ...prev,
-      sanpham: prev.sanpham.filter((item) => item.maSP !== maSP),
+      sanpham: prev.sanpham.filter((_, i) => i !== index),
     }));
   };
 
   // Create invoice
-  const handleCreateInvoice = async () => {
+  const handleCreateInvoice = async (e) => {
+    e.preventDefault();
     if (!validateForm()) {
       Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
       return;
@@ -206,7 +279,11 @@ const HoaDon = () => {
       if (data.resultCode === 0) {
         setInvoiceList([...invoiceList, data.data]);
         setShowAddModal(false);
-        setFormData({ maKH: "", maNV: "", sanpham: [] });
+        setFormData({
+          maKH: "",
+          maNV: "",
+          sanpham: [{ maSP: "", soluong: 1 }],
+        });
         setValidationErrors({});
         Swal.fire("Thành công!", "Tạo hóa đơn thành công", "success");
       } else {
@@ -222,7 +299,7 @@ const HoaDon = () => {
 
   // Open add modal
   const openAddModal = () => {
-    setFormData({ maKH: "", maNV: "", sanpham: [] });
+    setFormData({ maKH: "", maNV: "", sanpham: [{ maSP: "", soluong: 1 }] });
     setValidationErrors({});
     setShowAddModal(true);
   };
@@ -259,149 +336,30 @@ const HoaDon = () => {
     return Number(value).toLocaleString("vi-VN") + " VND";
   };
 
-  // Render add invoice form
-  const renderAddInvoiceForm = () => (
-    <Form>
-      <Row className="mb-3">
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>
-              Khách hàng <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Select
-              name="maKH"
-              value={formData.maKH}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, maKH: e.target.value }))
-              }
-              isInvalid={!!validationErrors.maKH}
-            >
-              <option value="">-- Chọn khách hàng --</option>
-              {customerList.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.hoten} ({customer.id})
-                </option>
-              ))}
-            </Form.Select>
-            <Form.Control.Feedback type="invalid">
-              {validationErrors.maKH}
-            </Form.Control.Feedback>
-          </Form.Group>
-        </Col>
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>
-              Nhân viên <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Select
-              name="maNV"
-              value={formData.maNV}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, maNV: e.target.value }))
-              }
-              isInvalid={!!validationErrors.maNV}
-            >
-              <option value="">-- Chọn nhân viên --</option>
-              {employeeList.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.hoten} ({employee.id})
-                </option>
-              ))}
-            </Form.Select>
-            <Form.Control.Feedback type="invalid">
-              {validationErrors.maNV}
-            </Form.Control.Feedback>
-          </Form.Group>
-        </Col>
-      </Row>
-      <Row className="mb-3">
-        <Col>
-          <Form.Group>
-            <Form.Label>
-              Sản phẩm <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Select
-              onChange={(e) => addProduct(e.target.value)}
-              isInvalid={!!validationErrors.sanpham}
-            >
-              <option value="">-- Chọn sản phẩm --</option>
-              {productList.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.tensp} ({product.id})
-                </option>
-              ))}
-            </Form.Select>
-            <Form.Control.Feedback type="invalid">
-              {validationErrors.sanpham}
-            </Form.Control.Feedback>
-          </Form.Group>
-        </Col>
-      </Row>
-      {formData.sanpham.length > 0 && (
-        <Table striped bordered hover size="sm" className="mt-3">
-          <thead>
-            <tr>
-              <th>Tên sản phẩm</th>
-              <th>Số lượng</th>
-              <th>Đơn giá</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {formData.sanpham.map((item) => {
-              const product = productList.find((p) => p.id === item.maSP);
-              const price = product?.makm
-                ? product.gia * (1 - product.makm.phantram / 100)
-                : product?.gia || 0;
-              return (
-                <tr key={item.maSP}>
-                  <td>{product?.tensp}</td>
-                  <td>
-                    <Form.Control
-                      type="number"
-                      min="0"
-                      value={item.soluong}
-                      onChange={(e) =>
-                        updateProductQuantity(
-                          item.maSP,
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      style={{ width: "100px" }}
-                    />
-                  </td>
-                  <td>{formatCurrency(price)}</td>
-                  <td>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => removeProduct(item.maSP)}
-                    >
-                      Xóa
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
-      )}
-    </Form>
-  );
-
   return (
     <div className="container-fluid p-0 position-relative d-flex flex-column min-vh-100">
       <div className="p-4 flex-grow-1">
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
           <h1 className="h3 mb-3 mb-md-0">Danh sách hóa đơn</h1>
-          <div className="d-flex gap-2 align-items-center">
-            <Form.Group style={{ width: "100%", maxWidth: "450px" }}>
-              <Form.Label>Chọn khách hàng</Form.Label>
+          <div className="d-flex gap-2 align-items-center flex-wrap">
+            <Form.Group style={{ width: "200px" }}>
               <Form.Select
-                value={selectedCustomer}
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+              >
+                <option value="all">Tất cả hóa đơn</option>
+                <option value="today">Hôm nay</option>
+                <option value="week">Tuần này</option>
+                <option value="month">Tháng này</option>
+              </Form.Select>
+            </Form.Group>
+
+            <Form.Group style={{ width: "250px" }}>
+              <Form.Select
+                value={selectedCustomer?.id || ""}
                 onChange={handleCustomerChange}
               >
-                <option value="all">Tất cả</option>
+                <option value="">Chọn khách hàng</option>
                 {customerList.map((customer) => (
                   <option key={customer.id} value={customer.id}>
                     {customer.hoten} ({customer.id})
@@ -409,6 +367,7 @@ const HoaDon = () => {
                 ))}
               </Form.Select>
             </Form.Group>
+
             <button
               className="btn btn-success custom-sm-btn-dangvien"
               onClick={openAddModal}
@@ -536,85 +495,291 @@ const HoaDon = () => {
       <Modal
         show={showAddModal}
         onHide={() => setShowAddModal(false)}
+        dialogClassName="modal-xl"
         size="xl"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Thêm hóa đơn</Modal.Title>
+          <Modal.Title>Thêm hóa đơn mới</Modal.Title>
         </Modal.Header>
-        <Modal.Body>{renderAddInvoiceForm()}</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAddModal(false)}>
-            Hủy
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleCreateInvoice}
-            disabled={loading}
-          >
-            {loading ? "Đang xử lý..." : "Tạo hóa đơn"}
-          </Button>
-        </Modal.Footer>
+        <Form onSubmit={handleCreateInvoice}>
+          <Modal.Body>
+            <h5>Thông tin hóa đơn</h5>
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Khách hàng <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Select
+                    name="maKH"
+                    value={formData.maKH}
+                    onChange={(e) =>
+                      setFormData({ ...formData, maKH: e.target.value })
+                    }
+                    required
+                    isInvalid={!!validationErrors.maKH}
+                  >
+                    <option value="">Chọn khách hàng</option>
+                    {customerList.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.id} - {customer.hoten}
+                      </option>
+                    ))}
+                    <option value="KH000">Khách vãng lai</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validationErrors.maKH}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Nhân viên <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Select
+                    name="maNV"
+                    value={formData.maNV}
+                    onChange={(e) =>
+                      setFormData({ ...formData, maNV: e.target.value })
+                    }
+                    required
+                    isInvalid={!!validationErrors.maNV}
+                  >
+                    <option value="">Chọn nhân viên</option>
+                    {employeeList.map((employee) => (
+                      <option key={employee.id} value={employee.id}>
+                        {employee.id} - {employee.hoten}
+                      </option>
+                    ))}
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {validationErrors.maNV}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+            <h5 className="mt-4">Chi tiết hóa đơn</h5>
+            {formData.sanpham.map((item, index) => {
+              const product = productList.find((p) => p.id === item.maSP);
+              const originalPrice = product?.gia || 0;
+              const discountPercent = product?.makm?.phantram || 0;
+              const discountPrice =
+                discountPercent > 0
+                  ? originalPrice * (1 - discountPercent / 100)
+                  : originalPrice;
+
+              return (
+                <Row key={index} className="mb-3 align-items-end">
+                  <Col md={4}>
+                    <Form.Group>
+                      <Form.Label>Tên sản phẩm</Form.Label>
+                      <Form.Select
+                        value={item.maSP || ""}
+                        onChange={(e) =>
+                          updateProductQuantity(index, "maSP", e.target.value)
+                        }
+                        required
+                      >
+                        <option value="">Chọn sản phẩm</option>
+                        {productList.map((product) => (
+                          <option
+                            key={product.id}
+                            value={product.id}
+                          >
+                            {product.id} - {product.tensp}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                  <Col md={1}>
+                    <Form.Group>
+                      <Form.Label>Số lượng</Form.Label>
+                      <Form.Control
+                        type="number"
+                        min="1"
+                        value={item.soluong}
+                        onChange={(e) =>
+                          updateProductQuantity(
+                            index,
+                            "soluong",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label>Giá gốc</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={formatCurrency(originalPrice)}
+                        readOnly
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label>Khuyến mãi</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={
+                          discountPercent > 0
+                            ? `${discountPercent}%`
+                            : "Không có"
+                        }
+                        readOnly
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={2}>
+                    <Form.Group>
+                      <Form.Label>Giá bán</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={formatCurrency(discountPrice)}
+                        readOnly
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={1}>
+                    <Button
+                      variant="danger"
+                      onClick={() => removeProduct(index)}
+                      disabled={formData.sanpham.length === 1}
+                    >
+                      <i className="fas fa-trash"></i>
+                    </Button>
+                  </Col>
+                </Row>
+              );
+            })}
+
+            <Button variant="outline-primary" onClick={() => addProduct("")}>
+              <i className="fas fa-plus me-2"></i>Thêm sản phẩm
+            </Button>
+
+            {/* Hiển thị tổng giá trị đơn hàng */}
+            <div className="mt-4 p-3 bg-light rounded">
+              <h5 className="text-end">
+                Tổng giá trị đơn hàng:{" "}
+                <strong>{formatCurrency(calculateTotal())}</strong>
+              </h5>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+              Hủy
+            </Button>
+            <Button variant="primary" type="submit" disabled={loading}>
+              {loading ? "Đang xử lý..." : "Lưu hóa đơn"}
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
 
       {/* Detail Modal */}
       <Modal
         show={showDetailModal}
         onHide={() => setShowDetailModal(false)}
+        dialogClassName="modal-xl"
         size="xl"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Chi tiết hóa đơn</Modal.Title>
+          <Modal.Title>Thông tin chi tiết hóa đơn</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedInvoice && (
             <>
-              <ListGroup variant="flush" className="mb-3">
-                <ListGroup.Item>
-                  <FaFileInvoice className="me-2" />
-                  <strong>Mã hóa đơn:</strong> {selectedInvoice.id}
-                </ListGroup.Item>
-                <ListGroup.Item>
-                  <FaUser className="me-2" />
-                  <strong>Khách hàng:</strong> {selectedInvoice.makh.hoten} ({selectedInvoice.makh.id})
-                </ListGroup.Item>
-                <ListGroup.Item>
-                  <FaUser className="me-2" />
-                  <strong>Nhân viên:</strong> {selectedInvoice.manv.hoten} ({selectedInvoice.manv.id})
-                </ListGroup.Item>
-                <ListGroup.Item>
-                  <FaClock className="me-2" />
-                  <strong>Ngày hóa đơn:</strong> {formatDateTime(selectedInvoice.nghd)}
-                </ListGroup.Item>
-                <ListGroup.Item>
-                  <FaDollarSign className="me-2" />
-                  <strong>Trị giá:</strong> {formatCurrency(selectedInvoice.trigia)}
-                </ListGroup.Item>
-              </ListGroup>
-              <h5>Chi tiết sản phẩm</h5>
-              <Table striped bordered hover size="sm">
-                <thead>
+              <h5>Thông tin hóa đơn</h5>
+              <Row className="mb-4">
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Mã hóa đơn</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={selectedInvoice.id}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Ngày lập hóa đơn</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formatDateTime(selectedInvoice.nghd)}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Khách hàng</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={`${selectedInvoice.makh.id} - ${selectedInvoice.makh.hoten}`}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Nhân viên</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={`${selectedInvoice.manv.id} - ${selectedInvoice.manv.hoten}`}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Trị giá hóa đơn</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formatCurrency(selectedInvoice.trigia)}
+                      readOnly
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <h5 className="mt-4">Chi tiết sản phẩm</h5>
+              <Table responsive bordered className="mt-3">
+                <thead className="table-light">
                   <tr>
+                    <th>STT</th>
+                    <th>Mã sản phẩm</th>
                     <th>Tên sản phẩm</th>
                     <th>Số lượng</th>
                     <th>Đơn giá</th>
                     <th>Khuyến mãi</th>
+                    <th>Thành tiền</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedInvoice.cthds.map((item, index) => (
                     <tr key={index}>
-                      <td>{item.masp.tensp} ({item.masp.id})</td>
+                      <td>{index + 1}</td>
+                      <td>{item.masp.id}</td>
+                      <td>{item.masp.tensp}</td>
                       <td>{item.sl}</td>
                       <td>{formatCurrency(item.gia)}</td>
                       <td>
                         {item.masp.makm ? (
                           <Badge bg="success">
-                            {item.masp.makm.noidung} ({item.masp.makm.phantram}%)
+                            {item.masp.makm.noidung} ({item.masp.makm.phantram}
+                            %)
                           </Badge>
                         ) : (
                           "Không có"
                         )}
                       </td>
+                      <td>{formatCurrency(item.sl * item.gia)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -623,7 +788,7 @@ const HoaDon = () => {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+          <Button variant="primary" onClick={() => setShowDetailModal(false)}>
             Đóng
           </Button>
         </Modal.Footer>
