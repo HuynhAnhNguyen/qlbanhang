@@ -24,6 +24,7 @@ import {
   fetchKhachHang,
   fetchKhachHangActive,
   fetchNhanVien,
+  fetchNhanVienActive,
   fetchSanPham,
 } from "../services/apiService";
 
@@ -144,7 +145,7 @@ const HoaDon = () => {
   // Fetch all employees
   const loadEmployees = async () => {
     try {
-      const data = await fetchNhanVien(token);
+      const data = await fetchNhanVienActive(token);
       if (data.resultCode === 0) {
         setEmployeeList(data.data);
       } else {
@@ -278,7 +279,12 @@ const HoaDon = () => {
       setLoading(true);
       const data = await createHoaDon(token, formData);
       if (data.resultCode === 0) {
-        setInvoiceList([...invoiceList, data.data]);
+        const newInvoice = {
+          ...data.data,
+          cthds: data.data.cthds || [], // Thêm dòng này
+        };
+        setInvoiceList([...invoiceList, newInvoice]);
+        // setInvoiceList([...invoiceList, data.data]);
         setShowAddModal(false);
         setFormData({
           maKH: "",
@@ -287,6 +293,7 @@ const HoaDon = () => {
         });
         setValidationErrors({});
         Swal.fire("Thành công!", "Tạo hóa đơn thành công", "success");
+        loadAllInvoices();
       } else {
         throw new Error(data.message || "Tạo hóa đơn thất bại");
       }
@@ -670,7 +677,7 @@ const HoaDon = () => {
 
             {/* Hiển thị tổng giá trị đơn hàng */}
             <div className="mt-4 p-3 bg-light rounded">
-              <h5 className="text-end">
+              <h5 className="text-end text-muted">
                 Tổng giá trị đơn hàng:{" "}
                 <strong>{formatCurrency(calculateTotal())}</strong>
               </h5>
@@ -845,44 +852,48 @@ const HoaDon = () => {
                           <th width="150">Thành tiền</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {selectedInvoice.cthds.map((item, index) => {
-                          const originalPrice = item.masp?.gia || 0;
-                          const discountPercent =
-                            item.masp?.makm?.phantram || 0;
-                          const discountPrice =
-                            discountPercent > 0
-                              ? originalPrice * (1 - discountPercent / 100)
-                              : originalPrice;
+                      {selectedInvoice && selectedInvoice.cthds && (
+                        <tbody>
+                          {selectedInvoice.cthds.map((item, index) => {
+                            const originalPrice = item.masp?.gia || 0;
+                            const discountPercent =
+                              item.masp?.makm?.phantram || 0;
+                            const discountPrice =
+                              discountPercent > 0
+                                ? originalPrice * (1 - discountPercent / 100)
+                                : originalPrice;
 
-                          return (
-                            <tr key={index}>
-                              <td>{index + 1}</td>
-                              <td>
-                                <span className="badge bg-secondary bg-opacity-10 text-secondary">
-                                  {item.masp.id}
-                                </span>
-                              </td>
-                              <td>{item.masp.tensp}</td>
-                              <td>{item.sl}</td>
-                              <td>{formatCurrency(originalPrice)}</td>
-                              <td>
-                                {item.masp.makm ? (
-                                  <span className="badge bg-success bg-opacity-10 text-success">
-                                    {item.masp.makm.phantram}%
-                                  </span>
-                                ) : (
+                            return (
+                              <tr key={index}>
+                                <td>{index + 1}</td>
+                                <td>
                                   <span className="badge bg-secondary bg-opacity-10 text-secondary">
-                                    Không có
+                                    {item.masp.id}
                                   </span>
-                                )}
-                              </td>
-                              <td>{formatCurrency(discountPrice)}</td>
-                              <td>{formatCurrency(item.sl * discountPrice)}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
+                                </td>
+                                <td>{item.masp.tensp}</td>
+                                <td>{item.sl}</td>
+                                <td>{formatCurrency(originalPrice)}</td>
+                                <td>
+                                  {item.masp.makm ? (
+                                    <span className="badge bg-success bg-opacity-10 text-success">
+                                      {item.masp.makm.phantram}%
+                                    </span>
+                                  ) : (
+                                    <span className="badge bg-secondary bg-opacity-10 text-secondary">
+                                      Không có
+                                    </span>
+                                  )}
+                                </td>
+                                <td>{formatCurrency(discountPrice)}</td>
+                                <td>
+                                  {formatCurrency(item.sl * discountPrice)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      )}
                       <tfoot className="table-light">
                         <tr>
                           <td

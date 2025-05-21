@@ -437,3 +437,16 @@ export const fetchThongKe = async (token) => {
 
 export const getImageLink = (imageName) =>
   `${REACT_APP_API_URL}/auth/file/getImage/${imageName}`;
+
+
+// Lấy danh sách nhân viên
+export const fetchNhanVienActive = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/nhanvien/findNhanvienActive`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  console.log(response.data);
+  return response.data;
+};

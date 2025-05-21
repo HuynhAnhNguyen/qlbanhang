@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Button,
-  Form,
-  Row,
-  Col,
-  Badge,
-} from "react-bootstrap";
+import { Modal, Button, Form, Row, Col, Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 import {
   addKhuyenMai,
@@ -790,32 +783,52 @@ const SanPham = () => {
         <Modal.Body className="p-0">
           {productDetail && (
             <div className="row g-0">
-              <div className="col-md-6 bg-light">
-                <div className="h-100 d-flex align-items-center justify-content-center p-4">
-                  <div className="card border-0 w-100 h-100">
-                    <div className="card-img-container position-relative overflow-hidden h-100">
+              <div className="col-md-6 bg-light p-3">
+                <div className="h-100 d-flex align-items-center justify-content-center">
+                  <div
+                    className="card border-0 w-100 h-100"
+                    style={{ borderRadius: "30px" }}
+                  >
+                    <div
+                      className="card-img-container position-relative overflow-hidden h-100"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "30px",
+                        backgroundColor: "#f8f9fa", // Màu nền khi không có ảnh
+                      }}
+                    >
                       {productDetail.imageurl ? (
                         <img
                           src={getImageLink(productDetail.imageurl)}
-                          className="img-fluid img-hover-effect"
+                          className="img-fluid"
                           alt={productDetail.tensp}
                           style={{
-                            borderRadius: "30px",
+                            maxWidth: "100%",
+                            maxHeight: "100%",
                             objectFit: "contain",
-                            padding: "20px",
-                            width: "100%",
-                            height: "100%",
-                            transition: "all 0.3s ease",
+                            borderRadius: "30px",
+                            padding: "10px",
+                            transition: "transform 0.3s ease",
                             cursor: "pointer",
                           }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.transform = "scale(1.03)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.transform = "scale(1)")
+                          }
                         />
                       ) : (
-                        <div className="d-flex flex-column align-items-center justify-content-center h-100">
+                        <div
+                          className="d-flex flex-column align-items-center justify-content-center h-100 w-100"
+                          style={{ borderRadius: "30px" }}
+                        >
                           <i className="fas fa-box-open fa-6x text-muted mb-3"></i>
                           <p className="text-muted">Không có hình ảnh</p>
                         </div>
                       )}
-                      <div className="img-overlay"></div>
                     </div>
                   </div>
                 </div>
@@ -825,9 +838,7 @@ const SanPham = () => {
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <div>
                       <h3 className="fw-bold mb-1">{productDetail.tensp}</h3>
-                      <p className="text-muted small">
-                        {productDetail.id}
-                      </p>
+                      <p className="text-muted small">{productDetail.id}</p>
                     </div>
                   </div>
 
