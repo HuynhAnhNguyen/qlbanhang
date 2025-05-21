@@ -12833,3 +12833,77 @@ span.flatpickr-weekday {
       align-items: flex-start;
     }
   }
+
+ /* Chi tiết nhân viên  */
+.employee-profile {
+  padding: 20px;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f8ff;
+  border-radius: 50%;
+  border: 3px solid #083787;
+  transition: all 0.3s ease;
+}
+
+ .profile-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+}
+
+.info-item:hover {
+    background: #f0f8ff;
+    border-left: 4px solid #0d6efd;
+    transform: translateX(5px);
+  }
+
+.info-item .icon {
+  font-size: 20px;
+  margin-right: 15px;
+  margin-top: 3px;
+  color: #0d6efd;
+  transition: all 0.3s ease;
+}
+
+.info-item:hover .icon {
+    transform: scale(1.1);
+  }
+
+.info-item label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 3px;
+  transition: all 0.3s ease;
+}
+
+.info-item:hover label {
+    color: #0d6efd;
+  }
+
+.info-item p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.info-item:hover p {
+    color: #333;
+    font-weight: 500;
+  }

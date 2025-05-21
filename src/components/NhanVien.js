@@ -8,10 +8,22 @@ import {
   Badge,
   ListGroup,
 } from "react-bootstrap";
-import { FaUser, FaPhone, FaCalendar, FaUserShield, FaKey } from "react-icons/fa";
+import {
+  FaUser,
+  FaPhone,
+  FaCalendar,
+  FaUserShield,
+  FaIdCard,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
-import { createNhanVien, deleteNhanVien, fetchNhanVien, fetchNhanVienById, fetchRole, updateNhanVien } from "../services/apiService";
-
+import {
+  createNhanVien,
+  deleteNhanVien,
+  fetchNhanVien,
+  fetchNhanVienById,
+  fetchRole,
+  updateNhanVien,
+} from "../services/apiService";
 
 const NhanVien = () => {
   const [employeeList, setEmployeeList] = useState([]);
@@ -181,7 +193,9 @@ const NhanVien = () => {
         const data = await deleteNhanVien(token, employeeId);
 
         if (data.resultCode === 0) {
-          setEmployeeList(employeeList.filter((item) => item.id !== employeeId));
+          setEmployeeList(
+            employeeList.filter((item) => item.id !== employeeId)
+          );
           Swal.fire("Thành công!", "Xóa nhân viên thành công", "success");
         } else {
           throw new Error(data.message || "Xóa nhân viên thất bại");
@@ -282,7 +296,7 @@ const NhanVien = () => {
         <Col>
           <Form.Group>
             <Form.Label>
-              Họ tên <span className="text-danger">*</span>
+              Họ và tên nhân viên <span className="text-danger">*</span>
             </Form.Label>
             <Form.Control
               type="text"
@@ -437,8 +451,11 @@ const NhanVien = () => {
                       <td>{item.sodt}</td>
                       <td>{item.roleid.rolename}</td>
                       <td>{formatDateTime(item.ngvl)}</td>
+
                       <td>
-                        <Badge bg={item.status === "active" ? "success" : "danger"}>
+                        <Badge
+                          bg={item.status === "active" ? "success" : "danger"}
+                        >
                           {item.status === "active" ? "Hoạt động" : "Đã xóa"}
                         </Badge>
                       </td>
@@ -480,7 +497,9 @@ const NhanVien = () => {
                 <nav aria-label="Page navigation">
                   <ul className="pagination">
                     <li
-                      className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                      className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                      }`}
                     >
                       <button
                         className="page-link"
@@ -593,36 +612,57 @@ const NhanVien = () => {
         </Modal.Header>
         <Modal.Body>
           {employeeDetail && (
-            <ListGroup variant="flush">
-              <ListGroup.Item>
-                <FaUser className="me-2" />
-                <strong>Mã nhân viên:</strong> {employeeDetail.id}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaUser className="me-2" />
-                <strong>Họ tên:</strong> {employeeDetail.hoten}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaPhone className="me-2" />
-                <strong>Số điện thoại:</strong> {employeeDetail.sodt}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaUserShield className="me-2" />
-                <strong>Vai trò:</strong> {employeeDetail.roleid.rolename}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaCalendar className="me-2" />
-                <strong>Ngày vào làm:</strong> {formatDateTime(employeeDetail.ngvl)}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Trạng thái:</strong>{" "}
+            <div className="employee-profile">
+              <div className="text-center mb-4">
+                <div className="profile-avatar">
+                  <FaUser size={60} className="text-primary" />
+                </div>
+                <h4 className="mt-3">{employeeDetail.hoten}</h4>
                 <Badge
                   bg={employeeDetail.status === "active" ? "success" : "danger"}
                 >
                   {employeeDetail.status === "active" ? "Hoạt động" : "Đã xóa"}
                 </Badge>
-              </ListGroup.Item>
-            </ListGroup>
+              </div>
+
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="info-item">
+                    <FaIdCard className="icon" />
+                    <div>
+                      <label>Mã nhân viên</label>
+                      <p>{employeeDetail.id}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <div className="info-item">
+                    <FaPhone className="icon" />
+                    <div>
+                      <label>Số điện thoại</label>
+                      <p>{employeeDetail.sodt}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="info-item">
+                <FaUserShield className="icon" />
+                <div>
+                  <label>Vai trò</label>
+                  <p className="fw-bold">{employeeDetail.roleid.rolename}</p>
+                </div>
+              </div>
+
+              <div className="info-item">
+                <FaCalendar className="icon" />
+                <div>
+                  <label>Ngày vào làm</label>
+                  <p>{formatDateTime(employeeDetail.ngvl)}</p>
+                </div>
+              </div>
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>
