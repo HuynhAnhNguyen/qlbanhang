@@ -12852,10 +12852,10 @@ span.flatpickr-weekday {
   transition: all 0.3s ease;
 }
 
- .profile-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  }
+.profile-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
 
 .info-item {
   display: flex;
@@ -12865,15 +12865,15 @@ span.flatpickr-weekday {
   border-radius: 8px;
   background: #f9f9f9;
   transition: all 0.3s ease;
-    cursor: pointer;
-    border-left: 4px solid transparent;
+  cursor: pointer;
+  border-left: 4px solid transparent;
 }
 
 .info-item:hover {
-    background: #f0f8ff;
-    border-left: 4px solid #0d6efd;
-    transform: translateX(5px);
-  }
+  background: #f0f8ff;
+  border-left: 4px solid #0d6efd;
+  transform: translateX(5px);
+}
 
 .info-item .icon {
   font-size: 20px;
@@ -12884,8 +12884,8 @@ span.flatpickr-weekday {
 }
 
 .info-item:hover .icon {
-    transform: scale(1.1);
-  }
+  transform: scale(1.1);
+}
 
 .info-item label {
   font-size: 12px;
@@ -12895,8 +12895,8 @@ span.flatpickr-weekday {
 }
 
 .info-item:hover label {
-    color: #0d6efd;
-  }
+  color: #0d6efd;
+}
 
 .info-item p {
   margin: 0;
@@ -12904,6 +12904,11 @@ span.flatpickr-weekday {
 }
 
 .info-item:hover p {
-    color: #333;
-    font-weight: 500;
-  }
+  color: #333;
+  font-weight: 500;
+}
+
+/* Trang chi tiết khách hàng */
+.customer-profile {
+  padding: 20px;
+}

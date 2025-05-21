@@ -290,7 +290,7 @@ const NhanVien = () => {
   };
 
   // Render form
-  const renderEmployeeForm = (isEdit = false) => (
+  const renderEmployeeForm = () => (
     <Form>
       <Row className="mb-3">
         <Col>
@@ -329,8 +329,7 @@ const NhanVien = () => {
             </Form.Control.Feedback>
           </Form.Group>
         </Col>
-        {!isEdit && (
-          <Col md={6}>
+        <Col md={6}>
             <Form.Group>
               <Form.Label>
                 Mật khẩu <span className="text-danger">*</span>
@@ -347,7 +346,6 @@ const NhanVien = () => {
               </Form.Control.Feedback>
             </Form.Group>
           </Col>
-        )}
       </Row>
       <Row className="mb-3">
         <Col>
@@ -360,7 +358,74 @@ const NhanVien = () => {
               value={formData.rolename}
               onChange={handleInputChange}
               isInvalid={!!validationErrors.rolename}
-              disabled={isEdit}
+              disabled={false}
+            >
+              <option value="">-- Chọn vai trò --</option>
+              {roleList.map((role) => (
+                <option key={role.id} value={role.rolename}>
+                  {role.rolename}
+                </option>
+              ))}
+            </Form.Select>
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.rolename}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+      </Row>
+    </Form>
+  );
+
+  const renderEmployeeEditForm = () => (
+    <Form>
+      <Row className="mb-3">
+        <Col>
+          <Form.Group>
+            <Form.Label>
+              Họ và tên nhân viên <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              isInvalid={!!validationErrors.fullName}
+            />
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.fullName}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+      </Row>
+      <Row className="mb-3">
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label>
+              Số điện thoại <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              type="text"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              isInvalid={!!validationErrors.phoneNumber}
+            />
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.phoneNumber}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label>
+              Vai trò <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Select
+              name="rolename"
+              value={formData.rolename}
+              onChange={handleInputChange}
+              isInvalid={!!validationErrors.rolename}
+              disabled={true}
             >
               <option value="">-- Chọn vai trò --</option>
               {roleList.map((role) => (
@@ -586,7 +651,7 @@ const NhanVien = () => {
         <Modal.Header closeButton>
           <Modal.Title>Sửa nhân viên</Modal.Title>
         </Modal.Header>
-        <Modal.Body>{renderEmployeeForm(true)}</Modal.Body>
+        <Modal.Body>{renderEmployeeEditForm()}</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
             Hủy
