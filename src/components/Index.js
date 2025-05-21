@@ -139,58 +139,43 @@ const Index = () => {
   return (
     <div className="container-fluid p-0 position-relative d-flex flex-column min-vh-100">
       <div className="p-4 flex-grow-1">
-        {/* <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-          <h1 className="h3 mb-3 mb-md-0">Trang chủ</h1>
-        </div> */}
 
         {/* Tổng hợp số liệu */}
-        <Row className="mb-4">
-          <Col md={3}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Tổng sản phẩm</Card.Title>
-                <Card.Text className="h4">{stats.sanpham.soSanpham}</Card.Text>
-                <Card.Text className="text-success">
-                  {stats.sanpham.soSanphamAvailable} đang có sẵn
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={3}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Tổng hóa đơn</Card.Title>
-                <Card.Text className="h4">{stats.soHoadon}</Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={3}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Nhân viên</Card.Title>
-                <Card.Text className="h4">
-                  {stats.nhanvien.soNhanvien}
-                </Card.Text>
-                <Card.Text className="text-success">
-                  {stats.nhanvien.soNhanvienActive} đang hoạt động
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={3}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Khách hàng</Card.Title>
-                <Card.Text className="h4">
-                  {stats.khachang.soKhachhang}
-                </Card.Text>
-                <Card.Text className="text-success">
-                  {stats.khachang.soKhachangActive} đang hoạt động
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+        <div className="stats-grid mb-4">
+          <Card>
+            <Card.Body>
+              <Card.Title>Tổng sản phẩm</Card.Title>
+              <Card.Text className="h4">{stats.sanpham.soSanpham}</Card.Text>
+              <Card.Text className="text-success">
+                {stats.sanpham.soSanphamAvailable} đang có sẵn
+              </Card.Text>
+            </Card.Body>
+          </Card>
+          <Card>
+            <Card.Body>
+              <Card.Title>Tổng hóa đơn</Card.Title>
+              <Card.Text className="h4">{stats.soHoadon}</Card.Text>
+            </Card.Body>
+          </Card>
+          <Card>
+            <Card.Body>
+              <Card.Title>Nhân viên</Card.Title>
+              <Card.Text className="h4">{stats.nhanvien.soNhanvien}</Card.Text>
+              <Card.Text className="text-success">
+                {stats.nhanvien.soNhanvienActive} đang hoạt động
+              </Card.Text>
+            </Card.Body>
+          </Card>
+          <Card>
+            <Card.Body>
+              <Card.Title>Khách hàng</Card.Title>
+              <Card.Text className="h4">{stats.khachang.soKhachhang}</Card.Text>
+              <Card.Text className="text-success">
+                {stats.khachang.soKhachangActive} đang hoạt động
+              </Card.Text>
+            </Card.Body>
+          </Card>
+        </div>
 
         {/* Biểu đồ */}
         <Row className="mb-4">
@@ -339,7 +324,9 @@ const Index = () => {
                         <td className="text-end text-black">
                           {formatCurrency(product.gia)}
                         </td>
-                        <td className="text-end text-black">{product.tongSoLuongBan}</td>
+                        <td className="text-end text-black">
+                          {product.tongSoLuongBan}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
