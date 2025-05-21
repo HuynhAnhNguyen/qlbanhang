@@ -12791,3 +12791,45 @@ span.flatpickr-weekday {
   font-size: 0.75rem;
   margin-top: 0.25rem;
 } */ 
+
+
+/* Lịch sử */
+  .promo-card {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Roboto', sans-serif;
+  }
+  .promo-label {
+    font-weight: bold;
+    color: #495057;
+    text-align: left;
+    padding-right: 1rem;
+  }
+  .promo-value {
+    color: #212529;
+    padding-left: 1rem;
+    /* border-left: 1px solid #dee2e6; */
+  }
+  .promo-row {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #dee2e6;
+    align-items: center;
+  }
+  .promo-row:last-child {
+    border-bottom: none;
+  }
+  @media (max-width: 768px) {
+    .promo-label {
+      text-align: left;
+      padding-right: 0;
+      margin-bottom: 0.5rem;
+    }
+    .promo-value {
+      padding-left: 0;
+      border-left: none;
+    }
+    .promo-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }

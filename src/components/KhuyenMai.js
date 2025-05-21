@@ -7,6 +7,7 @@ import {
   Col,
   Badge,
   ListGroup,
+  Card,
 } from "react-bootstrap";
 import Swal from "sweetalert2";
 import {
@@ -388,9 +389,9 @@ const KhuyenMai = () => {
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: "5%" }}>STT</th>
-                    <th style={{ width: "15%" }}>Mã KM</th>
+                    <th style={{ width: "15%" }}>Mã khuyến mãi</th>
                     <th style={{ width: "20%" }}>Nội dung</th>
-                    <th style={{ width: "15%" }}>Phần trăm khuyến mãi</th>
+                    <th style={{ width: "15%" }}>Phần trăm giảm</th>
                     <th style={{ width: "25%" }}>Thời gian</th>
                     <th style={{ width: "10%" }}>Trạng thái</th>
                     <th style={{ width: "10%" }}>Thao tác</th>
@@ -559,38 +560,65 @@ const KhuyenMai = () => {
         size="lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Chi tiết khuyến mãi</Modal.Title>
+          <Modal.Title>Chi tiết khuyến mãi <strong>{promoDetail.id}</strong></Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {promoDetail && (
-            <ListGroup variant="flush">
-              <ListGroup.Item>
-                <strong>Mã khuyến mãi:</strong> {promoDetail.id}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Nội dung:</strong> {promoDetail.noidung}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Phần trăm giảm giá:</strong>{" "}
-                <Badge bg="success">{promoDetail.phantram}%</Badge>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Thời gian:</strong> {formatDate(promoDetail.ngaybd)} -{" "}
-                {formatDate(promoDetail.ngaykt)}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Trạng thái:</strong>{" "}
-                <Badge
-                  bg={
-                    promoDetail.status === "available" ? "success" : "secondary"
-                  }
-                >
-                  {promoDetail.status === "available"
-                    ? "Có hiệu lực"
-                    : "Hết hiệu lực"}
-                </Badge>
-              </ListGroup.Item>
-            </ListGroup>
+            <Card className="promo-card">
+              <Card.Body>
+                <Row className="promo-row">
+                  <Col md={4} className="promo-label">
+                    Mã khuyến mãi
+                  </Col>
+                  <Col md={8} className="promo-value">
+                    {promoDetail.id}
+                  </Col>
+                </Row>
+                <Row className="promo-row">
+                  <Col md={4} className="promo-label">
+                    Nội dung
+                  </Col>
+                  <Col md={8} className="promo-value">
+                    {promoDetail.noidung}
+                  </Col>
+                </Row>
+                <Row className="promo-row">
+                  <Col md={4} className="promo-label">
+                    Phần trăm giảm giá
+                  </Col>
+                  <Col md={8} className="promo-value">
+                    <Badge bg="danger">-{promoDetail.phantram}%</Badge>
+                  </Col>
+                </Row>
+                <Row className="promo-row">
+                  <Col md={4} className="promo-label">
+                    Thời gian
+                  </Col>
+                  <Col md={8} className="promo-value">
+                    {formatDate(promoDetail.ngaybd)} -{" "}
+                    {formatDate(promoDetail.ngaykt)}
+                  </Col>
+                </Row>
+                <Row className="promo-row">
+                  <Col md={4} className="promo-label">
+                    Trạng thái
+                  </Col>
+                  <Col md={8} className="promo-value">
+                    <Badge
+                      bg={
+                        promoDetail.status === "available"
+                          ? "success"
+                          : "danger"
+                      }
+                    >
+                      {promoDetail.status === "available"
+                        ? "Có hiệu lực"
+                        : "Hết hiệu lực"}
+                    </Badge>
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -599,8 +627,6 @@ const KhuyenMai = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      
     </div>
   );
 };
