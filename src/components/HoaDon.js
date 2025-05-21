@@ -22,6 +22,7 @@ import {
   fetchHoaDon,
   fetchHoaDonByKhachHangId,
   fetchKhachHang,
+  fetchKhachHangActive,
   fetchNhanVien,
   fetchSanPham,
 } from "../services/apiService";
@@ -129,7 +130,7 @@ const HoaDon = () => {
   // Fetch all customers
   const loadCustomers = async () => {
     try {
-      const data = await fetchKhachHang(token);
+      const data = await fetchKhachHangActive(token);
       if (data.resultCode === 0) {
         setCustomerList(data.data);
       } else {
@@ -317,6 +318,19 @@ const HoaDon = () => {
     loadEmployees();
     loadProducts();
   }, []);
+
+  const handlePrintInvoice = () => {
+    const printContents =
+      document.getElementById("printable-invoice").innerHTML;
+    const originalContents = document.body.innerHTML;
+
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+
+    // Reattach event listeners if needed
+    window.location.reload();
+  };
 
   // Pagination
   const totalPages = Math.ceil(invoiceList.length / itemsPerPage);
@@ -516,7 +530,6 @@ const HoaDon = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, maKH: e.target.value })
                     }
-                    required
                     isInvalid={!!validationErrors.maKH}
                   >
                     <option value="">Chọn khách hàng</option>
@@ -525,7 +538,6 @@ const HoaDon = () => {
                         {customer.id} - {customer.hoten}
                       </option>
                     ))}
-                    <option value="KH000">Khách vãng lai</option>
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
                     {validationErrors.maKH}
@@ -543,7 +555,6 @@ const HoaDon = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, maNV: e.target.value })
                     }
-                    required
                     isInvalid={!!validationErrors.maNV}
                   >
                     <option value="">Chọn nhân viên</option>
@@ -579,14 +590,10 @@ const HoaDon = () => {
                         onChange={(e) =>
                           updateProductQuantity(index, "maSP", e.target.value)
                         }
-                        required
                       >
                         <option value="">Chọn sản phẩm</option>
                         {productList.map((product) => (
-                          <option
-                            key={product.id}
-                            value={product.id}
-                          >
+                          <option key={product.id} value={product.id}>
                             {product.id} - {product.tensp}
                           </option>
                         ))}
@@ -607,7 +614,6 @@ const HoaDon = () => {
                             e.target.value
                           )
                         }
-                        required
                       />
                     </Form.Group>
                   </Col>
@@ -687,108 +693,333 @@ const HoaDon = () => {
         onHide={() => setShowDetailModal(false)}
         dialogClassName="modal-xl"
         size="xl"
+        centered
       >
-        <Modal.Header closeButton>
-          <Modal.Title>Thông tin chi tiết hóa đơn</Modal.Title>
+        <Modal.Header closeButton className="bg-light">
+          <Modal.Title className="fw-bold text-primary">
+            <i className="fas fa-file-invoice me-2"></i>
+            Thông tin chi tiết hóa đơn
+          </Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="py-4">
           {selectedInvoice && (
             <>
-              <h5>Thông tin hóa đơn</h5>
-              <Row className="mb-4">
+              {/* Invoice Header Section */}
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 className="fw-bold text-uppercase">
+                    Hóa đơn #{selectedInvoice.id}
+                  </h4>
+                  <div className="text-muted">
+                    Ngày lập: {formatDateTime(selectedInvoice.nghd)}
+                  </div>
+                </div>
+                <div className="bg-primary text-white p-3 rounded text-center">
+                  <div className="fs-5 fw-bold">
+                    {formatCurrency(selectedInvoice.trigia)}
+                  </div>
+                  <small>Tổng trị giá</small>
+                </div>
+              </div>
+
+              {/* Customer and Staff Info */}
+              <Row className="g-3 mb-4">
                 <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Mã hóa đơn</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={selectedInvoice.id}
-                      readOnly
-                    />
-                  </Form.Group>
+                  <div className="card h-100 border-0 shadow-sm">
+                    <div className="card-header bg-light">
+                      <h6 className="mb-0 fw-bold">
+                        <i className="fas fa-user me-2"></i>Thông tin khách hàng
+                      </h6>
+                    </div>
+                    <div className="card-body">
+                      <div className="d-flex align-items-center mb-3">
+                        <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
+                          <i className="fas fa-id-card text-primary"></i>
+                        </div>
+                        <div>
+                          <div className="text-muted small">Mã khách hàng</div>
+                          <div className="fw-bold">
+                            {selectedInvoice.makh.id}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center mb-3">
+                        <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
+                          <i className="fas fa-signature text-primary"></i>
+                        </div>
+                        <div>
+                          <div className="text-muted small">Họ và tên</div>
+                          <div className="fw-bold">
+                            {selectedInvoice.makh.hoten}
+                          </div>
+                        </div>
+                      </div>
+                      {selectedInvoice.makh.diachi && (
+                        <div className="d-flex align-items-center">
+                          <div className="bg-primary bg-opacity-10 p-2 rounded me-3">
+                            <i className="fas fa-map-marker-alt text-primary"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">Địa chỉ</div>
+                            <div className="fw-bold">
+                              {selectedInvoice.makh.diachi}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </Col>
+
                 <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Ngày lập hóa đơn</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={formatDateTime(selectedInvoice.nghd)}
-                      readOnly
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Khách hàng</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={`${selectedInvoice.makh.id} - ${selectedInvoice.makh.hoten}`}
-                      readOnly
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Nhân viên</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={`${selectedInvoice.manv.id} - ${selectedInvoice.manv.hoten}`}
-                      readOnly
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Trị giá hóa đơn</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={formatCurrency(selectedInvoice.trigia)}
-                      readOnly
-                    />
-                  </Form.Group>
+                  <div className="card h-100 border-0 shadow-sm">
+                    <div className="card-header bg-light">
+                      <h6 className="mb-0 fw-bold">
+                        <i className="fas fa-user-tie me-2"></i>Thông tin nhân
+                        viên
+                      </h6>
+                    </div>
+                    <div className="card-body">
+                      <div className="d-flex align-items-center mb-3">
+                        <div className="bg-success bg-opacity-10 p-2 rounded me-3">
+                          <i className="fas fa-id-badge text-success"></i>
+                        </div>
+                        <div>
+                          <div className="text-muted small">Mã nhân viên</div>
+                          <div className="fw-bold">
+                            {selectedInvoice.manv.id}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center mb-3">
+                        <div className="bg-success bg-opacity-10 p-2 rounded me-3">
+                          <i className="fas fa-signature text-success"></i>
+                        </div>
+                        <div>
+                          <div className="text-muted small">Họ và tên</div>
+                          <div className="fw-bold">
+                            {selectedInvoice.manv.hoten}
+                          </div>
+                        </div>
+                      </div>
+                      {selectedInvoice.manv.sdt && (
+                        <div className="d-flex align-items-center">
+                          <div className="bg-success bg-opacity-10 p-2 rounded me-3">
+                            <i className="fas fa-phone-alt text-success"></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">
+                              Số điện thoại
+                            </div>
+                            <div className="fw-bold">
+                              {selectedInvoice.manv.sdt}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </Col>
               </Row>
 
-              <h5 className="mt-4">Chi tiết sản phẩm</h5>
-              <Table responsive bordered className="mt-3">
-                <thead className="table-light">
-                  <tr>
-                    <th>STT</th>
-                    <th>Mã sản phẩm</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Số lượng</th>
-                    <th>Đơn giá</th>
-                    <th>Khuyến mãi</th>
-                    <th>Thành tiền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedInvoice.cthds.map((item, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td>{item.masp.id}</td>
-                      <td>{item.masp.tensp}</td>
-                      <td>{item.sl}</td>
-                      <td>{formatCurrency(item.gia)}</td>
-                      <td>
-                        {item.masp.makm ? (
-                          <Badge bg="success">
-                            {item.masp.makm.noidung} ({item.masp.makm.phantram}
-                            %)
-                          </Badge>
-                        ) : (
-                          "Không có"
-                        )}
-                      </td>
-                      <td>{formatCurrency(item.sl * item.gia)}</td>
+              {/* Products Table */}
+              <div className="card border-0 shadow-sm">
+                <div className="card-header bg-light">
+                  <h6 className="mb-0 fw-bold">
+                    <i className="fas fa-shopping-cart me-2"></i>Chi tiết sản
+                    phẩm
+                  </h6>
+                </div>
+                <div className="card-body p-0">
+                  <div className="table-responsive">
+                    <table className="table table-hover mb-0">
+                      <thead className="table-light">
+                        <tr>
+                          <th width="50">#</th>
+                          <th>Mã SP</th>
+                          <th>Tên sản phẩm</th>
+                          <th width="100">Số lượng</th>
+                          <th width="150">Đơn giá</th>
+                          <th width="150">Khuyến mãi</th>
+                          <th width="150">Giá sau KM</th>
+                          <th width="150">Thành tiền</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedInvoice.cthds.map((item, index) => {
+                          const originalPrice = item.masp?.gia || 0;
+                          const discountPercent =
+                            item.masp?.makm?.phantram || 0;
+                          const discountPrice =
+                            discountPercent > 0
+                              ? originalPrice * (1 - discountPercent / 100)
+                              : originalPrice;
+
+                          return (
+                            <tr key={index}>
+                              <td>{index + 1}</td>
+                              <td>
+                                <span className="badge bg-secondary bg-opacity-10 text-secondary">
+                                  {item.masp.id}
+                                </span>
+                              </td>
+                              <td>{item.masp.tensp}</td>
+                              <td>{item.sl}</td>
+                              <td>{formatCurrency(originalPrice)}</td>
+                              <td>
+                                {item.masp.makm ? (
+                                  <span className="badge bg-success bg-opacity-10 text-success">
+                                    {item.masp.makm.phantram}%
+                                  </span>
+                                ) : (
+                                  <span className="badge bg-secondary bg-opacity-10 text-secondary">
+                                    Không có
+                                  </span>
+                                )}
+                              </td>
+                              <td>{formatCurrency(discountPrice)}</td>
+                              <td>{formatCurrency(item.sl * discountPrice)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot className="table-light">
+                        <tr>
+                          <td
+                            colSpan="7"
+                            className="text-end fw-bold text-muted"
+                          >
+                            Tổng cộng:
+                          </td>
+                          <td className="text-end fw-bold text-primary">
+                            {formatCurrency(selectedInvoice.trigia)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hidden div for printing */}
+              <div id="printable-invoice" className="d-none">
+                <div className="text-center mb-4">
+                  <h3 className="fw-bold">HÓA ĐƠN BÁN HÀNG</h3>
+                  <div>Số: {selectedInvoice.id}</div>
+                  <div>Ngày: {formatDateTime(selectedInvoice.nghd)}</div>
+                </div>
+
+                <div className="row mb-4">
+                  <div className="col-md-6">
+                    <h5>Khách hàng</h5>
+                    <div>
+                      <strong>Mã KH:</strong> {selectedInvoice.makh.id}
+                    </div>
+                    <div>
+                      <strong>Tên:</strong> {selectedInvoice.makh.hoten}
+                    </div>
+                    {selectedInvoice.makh.diachi && (
+                      <div>
+                        <strong>Địa chỉ:</strong> {selectedInvoice.makh.diachi}
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-md-6">
+                    <h5>Nhân viên</h5>
+                    <div>
+                      <strong>Mã NV:</strong> {selectedInvoice.manv.id}
+                    </div>
+                    <div>
+                      <strong>Tên:</strong> {selectedInvoice.manv.hoten}
+                    </div>
+                    {selectedInvoice.manv.sdt && (
+                      <div>
+                        <strong>Điện thoại:</strong> {selectedInvoice.manv.sdt}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <table className="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Tên sản phẩm</th>
+                      <th>Số lượng</th>
+                      <th>Đơn giá</th>
+                      <th>KM</th>
+                      <th>Giá sau KM</th>
+                      <th>Thành tiền</th>
                     </tr>
-                  ))}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {selectedInvoice.cthds.map((item, index) => {
+                      const originalPrice = item.masp?.gia || 0;
+                      const discountPercent = item.masp?.makm?.phantram || 0;
+                      const discountPrice =
+                        discountPercent > 0
+                          ? originalPrice * (1 - discountPercent / 100)
+                          : originalPrice;
+
+                      return (
+                        <tr key={index}>
+                          <td>{index + 1}</td>
+                          <td>
+                            {item.masp.tensp} (Mã: {item.masp.id})
+                          </td>
+                          <td>{item.sl}</td>
+                          <td>{formatCurrency(originalPrice)}</td>
+                          <td>
+                            {item.masp.makm ? (
+                              <span className="badge bg-success bg-opacity-10 text-success">
+                                -{item.masp.makm.phantram}%
+                              </span>
+                            ) : (
+                              <span className="badge bg-secondary bg-opacity-10 text-secondary">
+                                Không có
+                              </span>
+                            )}
+                          </td>
+                          <td>{formatCurrency(discountPrice)}</td>
+                          <td>{formatCurrency(item.sl * discountPrice)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th colSpan="6" className="text-end">
+                        Tổng cộng:
+                      </th>
+                      <th className="text-end">
+                        {formatCurrency(selectedInvoice.trigia)}
+                      </th>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                <div className="mt-4 text-end">
+                  <div>
+                    Ngày {new Date().getDate()} tháng{" "}
+                    {new Date().getMonth() + 1} năm {new Date().getFullYear()}
+                  </div>
+                  <div className="mt-4">
+                    <strong>Người lập hóa đơn</strong>
+                  </div>
+                  <div className="mt-4 fst-italic">(Ký, ghi rõ họ tên)</div>
+                </div>
+              </div>
             </>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={() => setShowDetailModal(false)}>
+        <Modal.Footer className="bg-light">
+          <Button variant="primary" onClick={() => handlePrintInvoice()}>
+            <i className="fas fa-print me-2"></i>In hóa đơn
+          </Button>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setShowDetailModal(false)}
+          >
             Đóng
           </Button>
         </Modal.Footer>

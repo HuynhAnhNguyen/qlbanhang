@@ -181,6 +181,17 @@ export const fetchKhachHang = async (token) => {
   return response.data;
 };
 
+// Lấy danh sách khách hàng Active
+export const fetchKhachHangActive = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/khachhang/findKhachHangActive`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
+
 // Thêm khách hàng
 export const createKhachHang = async (token, khachhangData) => {
   const response = await axios.post(
