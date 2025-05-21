@@ -1,235 +1,353 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { fetchApprovedNews, getImageLink } from "../services/apiService";
+import React, { useState, useEffect } from "react";
+import { Card, Col, Row, Spinner, Table } from "react-bootstrap";
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { fetchThongKe } from "../services/apiService";
+
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+);
 
 const Index = () => {
-  const [approvedNews, setApprovedNews] = useState([]);
-  const [filteredNews, setFilteredNews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8); // Số tin mỗi trang
-  const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await fetchApprovedNews();
-        if (data.resultCode === 0) {
-          setApprovedNews(data.data);
-          setFilteredNews(data.data);
-          setLoading(false);
-        } else {
-          throw new Error(data.message || "Không thể tải tin tức");
-        }
-      } catch (error) {
-        console.error("Error fetching news:", error);
-        setLoading(false);
+  const token = localStorage.getItem("token");
+
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchThongKe(token);
+      if (data.resultCode === 0) {
+        setStats(data.data);
+      } else {
+        throw new Error(data.message);
       }
-    };
-
-    fetchData();
-  }, []);
+    } catch (err) {
+      setError("Không thể tải dữ liệu thống kê");
+      console.error("Error fetching stats:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Lọc tin tức khi searchTerm thay đổi
-    if (searchTerm) {
-      const filtered = approvedNews.filter(
-        (news) =>
-          news.tieude.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          news.noidungtin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          new Date(news.thoigianpheduyet)
-            .toLocaleDateString()
-            .includes(searchTerm)
-      );
-      setFilteredNews(filtered);
-      setCurrentPage(1); // Reset về trang đầu khi tìm kiếm
-    } else {
-      setFilteredNews(approvedNews);
-    }
-  }, [searchTerm, approvedNews]);
-
-  const handleViewDetail = (tintucId) => {
-    navigate(`/chi-tiet-tin-tuc/${tintucId}`);
-  };
-
-  // Loại bỏ HTML tags từ nội dung
-  const stripHtml = (html) => {
-    const tmp = document.createElement("div");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
-  };
-
-  // Tính toán phân trang
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredNews.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
+    fetchStats();
+  }, []);
 
   if (loading) {
     return (
-      <div className="container-fluid p-0 position-relative">
-        <div className="p-4 text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
+      <div className="text-center py-4">
+        <Spinner animation="border" variant="primary" />
       </div>
     );
   }
 
+  if (error) {
+    return <div className="alert alert-danger">{error}</div>;
+  }
+
+  if (!stats) {
+    return <div className="text-center py-4 text-muted">Không có dữ liệu</div>;
+  }
+
+  // Chart data
+  const topProductsData = {
+    labels: stats.top5Sanpham.map((product) => product.tensp),
+    datasets: [
+      {
+        label: "Số lượng bán",
+        data: stats.top5Sanpham.map((product) => product.tongSoLuongBan),
+        backgroundColor: "rgba(54, 162, 235, 0.6)",
+        borderColor: "rgba(54, 162, 235, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const productStatusData = {
+    labels: ["Có sẵn", "Hết hàng"],
+    datasets: [
+      {
+        data: [
+          stats.sanpham.soSanphamAvailable,
+          stats.sanpham.soSanpham - stats.sanpham.soSanphamAvailable,
+        ],
+        backgroundColor: ["#4BC0C0", "#FF6384"],
+        hoverBackgroundColor: ["#4BC0C0", "#FF6384"],
+      },
+    ],
+  };
+
+  const employeeStatusData = {
+    labels: ["Đang hoạt động", "Không hoạt động"],
+    datasets: [
+      {
+        data: [
+          stats.nhanvien.soNhanvienActive,
+          stats.nhanvien.soNhanvien - stats.nhanvien.soNhanvienActive,
+        ],
+        backgroundColor: ["#36A2EB", "#FFCE56"],
+        hoverBackgroundColor: ["#36A2EB", "#FFCE56"],
+      },
+    ],
+  };
+
+  const revenueData = {
+    labels: ["Hôm nay", "Tháng này", "Quý này"],
+    datasets: [
+      {
+        label: "Doanh thu (VND)",
+        data: [
+          stats.doanhthu.homNay,
+          stats.doanhthu.thangNay,
+          stats.doanhthu.quyNay,
+        ],
+        backgroundColor: [
+          "rgba(75, 192, 192, 0.6)",
+          "rgba(153, 102, 255, 0.6)",
+          "rgba(255, 159, 64, 0.6)",
+        ],
+        borderColor: [
+          "rgba(75, 192, 192, 1)",
+          "rgba(153, 102, 255, 1)",
+          "rgba(255, 159, 64, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const formatCurrency = (value) => {
+    return Number(value).toLocaleString("vi-VN") + " VND";
+  };
+
   return (
-    <div className="container-fluid p-0 position-relative">
-      {/* Phần tin tức */}
-      <div className="p-4">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-          <h1 className="h3 mb-3 mb-md-0">Tin tức hoạt động</h1>
-          <div className="d-flex" style={{ width: "100%", maxWidth: "400px" }}>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Tìm kiếm tin tức..."
-              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button
-              className="btn btn-primary"
-              style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-            >
-              <i className="fas fa-search"></i>
-            </button>
-          </div>
-        </div>
+    <div className="container-fluid p-0 position-relative d-flex flex-column min-vh-100">
+      <div className="p-4 flex-grow-1">
+        {/* <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+          <h1 className="h3 mb-3 mb-md-0">Trang chủ</h1>
+        </div> */}
 
-        {/* Danh sách tin tức */}
-        <div className="row">
-          {currentItems.length > 0 ? (
-            currentItems.map((newsItem) => (
-              <div className="col-12 col-md-6 col-lg-3 mb-4" key={newsItem.id}>
-                <div className="card h-100 border-0 shadow-sm hover-card d-flex flex-column">
-                  <div className="card-img-container position-relative overflow-hidden" style={{ height: "200px" }}>
-                    <img
-                      src={getImageLink(newsItem.url) || "/assets/images/logo/tolam.jpg"}
-                      className="card-img-top-news img-hover-effect h-100 w-100"
-                      alt="Tin tức"
-                      style={{
-                        borderRadius: "30px",
-                        objectFit: "cover",
-                        padding: "10px",
-                        transition: "all 0.3s ease",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => handleViewDetail(newsItem.id)}
-                    />
-                    <div className="img-overlay"></div>
-                  </div>
+        {/* Tổng hợp số liệu */}
+        <Row className="mb-4">
+          <Col md={3}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Tổng sản phẩm</Card.Title>
+                <Card.Text className="h4">{stats.sanpham.soSanpham}</Card.Text>
+                <Card.Text className="text-success">
+                  {stats.sanpham.soSanphamAvailable} đang có sẵn
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Tổng hóa đơn</Card.Title>
+                <Card.Text className="h4">{stats.soHoadon}</Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Nhân viên</Card.Title>
+                <Card.Text className="h4">
+                  {stats.nhanvien.soNhanvien}
+                </Card.Text>
+                <Card.Text className="text-success">
+                  {stats.nhanvien.soNhanvienActive} đang hoạt động
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Khách hàng</Card.Title>
+                <Card.Text className="h4">
+                  {stats.khachang.soKhachhang}
+                </Card.Text>
+                <Card.Text className="text-success">
+                  {stats.khachang.soKhachangActive} đang hoạt động
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
-                  <div className="card-body d-flex flex-column">
-                    <h5
-                      className="card-title"
-                      style={{
-                        fontSize: "1.1rem",
-                        lineHeight: "1.4",
-                        cursor: "pointer",
-                        minHeight: "60px",
-                      }}
-                      onClick={() => handleViewDetail(newsItem.id)}
-                    >
-                      {newsItem.tieude.substring(0, 100) + (newsItem.tieude.length > 150 ? "..." : "")}
-                    </h5>
-                    <p
-                      className="card-text text-muted mt-3 flex-grow-1"
-                      style={{ fontSize: "0.9rem", cursor: "pointer" }}
-                      onClick={() => handleViewDetail(newsItem.id)}
-                    >
-                      {stripHtml(newsItem.noidungtin).substring(0, 150) + 
-                        (stripHtml(newsItem.noidungtin).length > 150 ? "..." : "")}
-                    </p>
-                    <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                      <button
-                        className="btn btn-outline-primary py-2 px-3"
-                        style={{
-                          fontSize: "15px",
-                          borderRadius: "6px",
-                        }}
-                        onClick={() => handleViewDetail(newsItem.id)}
-                      >
-                        Xem chi tiết
-                      </button>
-                      <small className="text-muted" style={{ fontSize: "11px" }}>
-                        Đăng ngày: {new Date(newsItem.thoigianpheduyet).toLocaleString()}
-                      </small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-12 text-center py-5">
-              <p>Không có tin tức nào được duyệt để hiển thị</p>
-            </div>
-          )}
-        </div>
+        {/* Biểu đồ */}
+        <Row className="mb-4">
+          <Col md={6}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Top 5 sản phẩm bán chạy</Card.Title>
+                <Bar
+                  data={topProductsData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: "top" },
+                    },
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          stepSize: 1,
+                        },
+                      },
+                    },
+                  }}
+                />
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Tình trạng sản phẩm</Card.Title>
+                <Pie
+                  data={productStatusData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: "top" },
+                    },
+                  }}
+                />
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={3}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Trạng thái nhân viên</Card.Title>
+                <Pie
+                  data={employeeStatusData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: "top" },
+                    },
+                  }}
+                />
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
-        {/* Phân trang */}
-        {totalPages > 1 && (
-          <div className="mt-5">
-            <nav aria-label="Page navigation">
-              <ul className="pagination justify-content-center mb-0">
-                <li
-                  className={`page-item ${
-                    currentPage === 1 ? "disabled" : ""
-                  }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                  >
-                    « Trước
-                  </button>
-                </li>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <li
-                      key={page}
-                      className={`page-item ${
-                        page === currentPage ? "active" : ""
-                      }`}
-                    >
-                      <button
-                        className="page-link"
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </button>
-                    </li>
-                  )
-                )}
-                <li
-                  className={`page-item ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() =>
-                      setCurrentPage((prev) =>
-                        Math.min(prev + 1, totalPages)
-                      )
-                    }
-                    disabled={currentPage === totalPages}
-                  >
-                    Tiếp »
-                  </button>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        )}
+        {/* Doanh thu */}
+        <Row className="mb-4">
+          <Col md={6}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Doanh thu</Card.Title>
+                <Bar
+                  data={revenueData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: { position: "top" },
+                      tooltip: {
+                        callbacks: {
+                          label: function (context) {
+                            return formatCurrency(context.raw);
+                          },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col md={6}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Chi tiết doanh thu</Card.Title>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Kỳ</th>
+                      <th>Doanh thu</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Hôm nay</td>
+                      <td className="text-end text-black">
+                        {formatCurrency(stats.doanhthu.homNay)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Tháng này</td>
+                      <td className="text-end text-black">
+                        {formatCurrency(stats.doanhthu.thangNay)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Quý này</td>
+                      <td className="text-end text-black">
+                        {formatCurrency(stats.doanhthu.quyNay)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Top sản phẩm bán chạy */}
+        <Row>
+          <Col md={12}>
+            <Card>
+              <Card.Body>
+                <Card.Title>Top 5 sản phẩm bán chạy</Card.Title>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Mã SP</th>
+                      <th>Tên sản phẩm</th>
+                      <th>Đơn vị tính</th>
+                      <th>Giá bán</th>
+                      <th>Số lượng đã bán</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.top5Sanpham.map((product, index) => (
+                      <tr key={index}>
+                        <td>{product.masp}</td>
+                        <td>{product.tensp}</td>
+                        <td>{product.dvt}</td>
+                        <td className="text-end text-black">
+                          {formatCurrency(product.gia)}
+                        </td>
+                        <td className="text-end text-black">{product.tongSoLuongBan}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
       </div>
     </div>
   );
