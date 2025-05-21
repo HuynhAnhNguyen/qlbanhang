@@ -7,11 +7,27 @@ import {
   Col,
   Badge,
   ListGroup,
+  Tabs,
+  Tab,
 } from "react-bootstrap";
-import { FaUser, FaHome, FaPhone, FaBirthdayCake, FaDollarSign, FaCalendar } from "react-icons/fa";
-import Swal from "sweetalert2";
-import { createKhachHang, deleteKhachHang, fetchKhachHang, fetchKhachHangById, updateKhachHang } from "../services/apiService";
+import {
+  FaUser,
+  FaHome,
+  FaPhone,
+  FaBirthdayCake,
+  FaDollarSign,
+  FaCalendar,
+} from "react-icons/fa";
+import { FaIdCard } from "react-icons/fa";
 
+import Swal from "sweetalert2";
+import {
+  createKhachHang,
+  deleteKhachHang,
+  fetchKhachHang,
+  fetchKhachHangById,
+  updateKhachHang,
+} from "../services/apiService";
 
 const KhachHang = () => {
   const [customerList, setCustomerList] = useState([]);
@@ -163,7 +179,9 @@ const KhachHang = () => {
         const data = await deleteKhachHang(token, customerId);
 
         if (data.resultCode === 0) {
-          setCustomerList(customerList.filter((item) => item.id !== customerId));
+          setCustomerList(
+            customerList.filter((item) => item.id !== customerId)
+          );
           Swal.fire("Thành công!", "Xóa khách hàng thành công", "success");
         } else {
           throw new Error(data.message || "Xóa khách hàng thất bại");
@@ -270,7 +288,7 @@ const KhachHang = () => {
         <Col>
           <Form.Group>
             <Form.Label>
-              Họ tên <span className="text-danger">*</span>
+              Họ và tên <span className="text-danger">*</span>
             </Form.Label>
             <Form.Control
               type="text"
@@ -281,42 +299,6 @@ const KhachHang = () => {
             />
             <Form.Control.Feedback type="invalid">
               {validationErrors.hoten}
-            </Form.Control.Feedback>
-          </Form.Group>
-        </Col>
-      </Row>
-      <Row className="mb-3">
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>
-              Địa chỉ <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Control
-              type="text"
-              name="dchi"
-              value={formData.dchi}
-              onChange={handleInputChange}
-              isInvalid={!!validationErrors.dchi}
-            />
-            <Form.Control.Feedback type="invalid">
-              {validationErrors.dchi}
-            </Form.Control.Feedback>
-          </Form.Group>
-        </Col>
-        <Col md={6}>
-          <Form.Group>
-            <Form.Label>
-              Số điện thoại <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Control
-              type="text"
-              name="sodt"
-              value={formData.sodt}
-              onChange={handleInputChange}
-              isInvalid={!!validationErrors.sodt}
-            />
-            <Form.Control.Feedback type="invalid">
-              {validationErrors.sodt}
             </Form.Control.Feedback>
           </Form.Group>
         </Col>
@@ -339,6 +321,41 @@ const KhachHang = () => {
             </Form.Control.Feedback>
           </Form.Group>
         </Col>
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label>
+              Số điện thoại <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              type="text"
+              name="sodt"
+              value={formData.sodt}
+              onChange={handleInputChange}
+              isInvalid={!!validationErrors.sodt}
+            />
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.sodt}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
+      </Row>
+      <Row className="mb-3">
+        <Form.Group>
+          <Form.Label>
+            Địa chỉ <span className="text-danger">*</span>
+          </Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={4}
+            name="dchi"
+            value={formData.dchi}
+            onChange={handleInputChange}
+            isInvalid={!!validationErrors.dchi}
+          />
+          <Form.Control.Feedback type="invalid">
+            {validationErrors.dchi}
+          </Form.Control.Feedback>
+        </Form.Group>
       </Row>
     </Form>
   );
@@ -398,11 +415,11 @@ const KhachHang = () => {
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: "5%" }}>STT</th>
-                    <th style={{ width: "10%" }}>Mã KH</th>
-                    <th style={{ width: "20%" }}>Họ tên</th>
-                    <th style={{ width: "15%" }}>Số điện thoại</th>
-                    <th style={{ width: "15%" }}>Ngày sinh</th>
-                    <th style={{ width: "10%" }}>Doanh số</th>
+                    <th style={{ width: "15%" }}>Mã khách hàng</th>
+                    <th style={{ width: "20%" }}>Họ và tên</th>
+                    <th style={{ width: "10%" }}>Số điện thoại</th>
+                    <th style={{ width: "10%" }}>Ngày sinh</th>
+                    <th style={{ width: "15%" }}>Doanh số</th>
                     <th style={{ width: "15%" }}>Ngày đăng ký</th>
                     <th style={{ width: "10%" }}>Trạng thái</th>
                     <th style={{ width: "10%" }}>Thao tác</th>
@@ -416,7 +433,9 @@ const KhachHang = () => {
                       <td>{item.hoten}</td>
                       <td>{item.sodt}</td>
                       <td>{formatDate(item.ngsinh)}</td>
-                      <td>{Number(item.doanhso).toLocaleString("vi-VN")} VND</td>
+                      <td>
+                        {Number(item.doanhso).toLocaleString("vi-VN")} VND
+                      </td>
                       <td>{formatDateTime(item.ngdk)}</td>
                       <td>
                         <Badge
@@ -576,50 +595,338 @@ const KhachHang = () => {
         <Modal.Header closeButton>
           <Modal.Title>Chi tiết khách hàng</Modal.Title>
         </Modal.Header>
+
         <Modal.Body>
           {customerDetail && (
-            <ListGroup variant="flush">
-              <ListGroup.Item>
-                <FaUser className="me-2" />
-                <strong>Mã khách hàng:</strong> {customerDetail.id}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaUser className="me-2" />
-                <strong>Họ tên:</strong> {customerDetail.hoten}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaHome className="me-2" />
-                <strong>Địa chỉ:</strong> {customerDetail.dchi}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaPhone className="me-2" />
-                <strong>Số điện thoại:</strong> {customerDetail.sodt}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaBirthdayCake className="me-2" />
-                <strong>Ngày sinh:</strong> {formatDate(customerDetail.ngsinh)}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaDollarSign className="me-2" />
-                <strong>Doanh số:</strong>{" "}
-                {Number(customerDetail.doanhso).toLocaleString("vi-VN")} VND
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <FaCalendar className="me-2" />
-                <strong>Ngày đăng ký:</strong>{" "}
-                {formatDateTime(customerDetail.ngdk)}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Trạng thái:</strong>{" "}
+            <div className="customer-profile">
+              <div className="text-center mb-4">
+                <div className="profile-avatar">
+                  <FaUser size={60} className="text-primary" />
+                </div>
+                <h4 className="mt-3">{customerDetail.hoten}</h4>
                 <Badge
                   bg={customerDetail.status === "active" ? "success" : "danger"}
                 >
                   {customerDetail.status === "active" ? "Hoạt động" : "Đã xóa"}
                 </Badge>
-              </ListGroup.Item>
-            </ListGroup>
+              </div>
+
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="info-item">
+                    <FaIdCard className="icon" />
+                    <div>
+                      <label>Mã khách hàng</label>
+                      <p>{customerDetail.id}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <div className="info-item">
+                    <FaPhone className="icon" />
+                    <div>
+                      <label>Số điện thoại</label>
+                      <p>{customerDetail.sodt}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="info-item">
+                <FaHome className="icon" />
+                <div>
+                  <label>Địa chỉ</label>
+                  <p>{customerDetail.dchi}</p>
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="info-item">
+                    <FaBirthdayCake className="icon" />
+                    <div>
+                      <label>Ngày sinh</label>
+                      <p>{formatDate(customerDetail.ngsinh)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <div className="info-item">
+                    <FaCalendar className="icon" />
+                    <div>
+                      <label>Ngày đăng ký</label>
+                      <p>{formatDateTime(customerDetail.ngdk)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="info-item highlight">
+                <FaDollarSign className="icon" />
+                <div>
+                  <label>Doanh số</label>
+                  <p className="text-success fw-bold">
+                    {Number(customerDetail.doanhso).toLocaleString("vi-VN")} VND
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </Modal.Body>
+
+        <style jsx>{`
+          .customer-profile {
+            padding: 20px;
+          }
+
+          .profile-avatar {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f8ff;
+            border-radius: 50%;
+            border: 3px solid #e0e0e0;
+          }
+
+          .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9f9f9;
+          }
+
+          .info-item.highlight {
+            background: #f0f8ff;
+            border-left: 4px solid #0d6efd;
+          }
+
+          .info-item .icon {
+            font-size: 20px;
+            margin-right: 15px;
+            margin-top: 3px;
+            color: #0d6efd;
+          }
+
+          .info-item label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+          }
+
+          .info-item p {
+            margin: 0;
+            font-size: 15px;
+          }
+        `}</style>
+
+        <Modal.Body>
+          {customerDetail && (
+            <div className="modern-customer-view">
+              <div className="header-section">
+                <div className="avatar-circle">
+                  <FaUser size={28} />
+                </div>
+                <div className="header-info">
+                  <h5>{customerDetail.hoten}</h5>
+                  <div className={`status-badge ${customerDetail.status}`}>
+                    {customerDetail.status === "active"
+                      ? "Hoạt động"
+                      : "Đã xóa"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="divider"></div>
+
+              <div className="info-grid">
+                <div className="info-item">
+                  <div className="info-icon">
+                    <FaIdCard />
+                  </div>
+                  <div>
+                    <div className="info-title">Mã KH</div>
+                    <div className="info-value">{customerDetail.id}</div>
+                  </div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-icon">
+                    <FaPhone />
+                  </div>
+                  <div>
+                    <div className="info-title">Điện thoại</div>
+                    <div className="info-value">{customerDetail.sodt}</div>
+                  </div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-icon">
+                    <FaHome />
+                  </div>
+                  <div>
+                    <div className="info-title">Địa chỉ</div>
+                    <div className="info-value">{customerDetail.dchi}</div>
+                  </div>
+                </div>
+
+                <div className="info-item">
+                  <div className="info-icon">
+                    <FaBirthdayCake />
+                  </div>
+                  <div>
+                    <div className="info-title">Ngày sinh</div>
+                    <div className="info-value">
+                      {formatDate(customerDetail.ngsinh)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="stats-section">
+                <div className="stat-item">
+                  <div className="stat-title">Ngày đăng ký</div>
+                  <div className="stat-value">
+                    {formatDateTime(customerDetail.ngdk)}
+                  </div>
+                </div>
+
+                <div className="stat-item highlight">
+                  <div className="stat-title">Tổng doanh số</div>
+                  <div className="stat-value">
+                    {Number(customerDetail.doanhso).toLocaleString("vi-VN")} VND
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+
+        <style jsx>{`
+          .modern-customer-view {
+            padding: 20px;
+          }
+
+          .header-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+
+          .avatar-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #f0f8ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d6efd;
+          }
+
+          .header-info h5 {
+            margin: 0;
+            font-weight: 600;
+          }
+
+          .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 5px;
+          }
+
+          .status-badge.active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+          }
+
+          .status-badge.inactive {
+            background-color: #f8d7da;
+            color: #842029;
+          }
+
+          .divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 15px 0;
+          }
+
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+
+          .info-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+          }
+
+          .info-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e9f5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d6efd;
+          }
+
+          .info-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+          }
+
+          .info-value {
+            font-size: 14px;
+            font-weight: 500;
+          }
+
+          .stats-section {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+          }
+
+          .stat-item {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+          }
+
+          .stat-item.highlight {
+            background-color: #f0f8ff;
+            border-left: 4px solid #0d6efd;
+          }
+
+          .stat-title {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+          }
+
+          .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+          }
+        `}</style>
+
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
             Đóng

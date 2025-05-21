@@ -560,7 +560,7 @@ const KhuyenMai = () => {
         size="lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Chi tiết khuyến mãi <strong>{promoDetail.id}</strong></Modal.Title>
+          <Modal.Title>Chi tiết khuyến mãi</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {promoDetail && (
