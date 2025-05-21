@@ -43,6 +43,7 @@ const SanPham = () => {
   });
 
   const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("role");
 
   // Handle image upload
   const handleImageUpload = async (e) => {
@@ -129,6 +130,11 @@ const SanPham = () => {
 
   // Add product
   const handleAddProduct = async () => {
+    if (userRole === "ROLE_SALE") {
+      Swal.fire("Lỗi!", "Bạn không có quyền thêm sản phẩm!", "error");
+      return;
+    }
+
     if (!validateForm()) {
       Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
       return;
@@ -155,6 +161,11 @@ const SanPham = () => {
 
   // Edit product
   const handleUpdateProduct = async () => {
+     if (userRole === "ROLE_SALE") {
+      Swal.fire("Lỗi!", "Bạn không có quyền cập nhật sản phẩm!", "error");
+      return;
+    }
+
     if (!validateForm()) {
       Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
       return;
@@ -188,6 +199,11 @@ const SanPham = () => {
 
   // Open add modal
   const openAddModal = () => {
+    if (userRole === "ROLE_SALE") {
+      Swal.fire("Lỗi!", "Bạn không có quyền thêm sản phẩm!", "error");
+      return;
+    }
+
     setFormData({
       tensp: "",
       dvt: "",
@@ -202,6 +218,11 @@ const SanPham = () => {
 
   // Open edit modal
   const openEditModal = async (product) => {
+    if (userRole === "ROLE_SALE") {
+      Swal.fire("Lỗi!", "Bạn không có quyền sửa sản phẩm!", "error");
+      return;
+    }
+
     setSelectedProduct(product);
     try {
       setLoading(true);
@@ -248,6 +269,11 @@ const SanPham = () => {
 
   // Open promo modal
   const openPromoModal = async (product) => {
+    if (userRole === "ROLE_SALE") {
+      Swal.fire("Lỗi!", "Bạn không có quyền thêm khuyến mãi!", "error");
+      return;
+    }
+
     setSelectedProduct(product);
     setSelectedPromo("");
     await loadPromotions();
@@ -256,6 +282,11 @@ const SanPham = () => {
 
   // Add promotion to product
   const handleAddPromotion = async () => {
+    if (userRole === "ROLE_SALE") {
+      Swal.fire("Lỗi!", "Bạn không có quyền thêm khuyến mãi!", "error");
+      return;
+    }
+
     if (!selectedPromo) {
       Swal.fire("Lỗi!", "Vui lòng chọn khuyến mãi", "error");
       return;
@@ -282,6 +313,11 @@ const SanPham = () => {
 
   // Remove promotion from product
   const handleRemovePromotion = async (productId) => {
+    if (userRole === "ROLE_SALE") {
+      Swal.fire("Lỗi!", "Bạn không có quyền xóa khuyến mãi!", "error");
+      return;
+    }
+
     const result = await Swal.fire({
       title: "Xác nhận xóa?",
       text: "Bạn có chắc chắn muốn xóa khuyến mãi này?",
@@ -521,6 +557,7 @@ const SanPham = () => {
             <button
               className="btn btn-success custom-sm-btn-dangvien"
               onClick={openAddModal}
+              disabled={userRole === "ROLE_SALE"}
             >
               <i className="fas fa-plus me-2"></i>Thêm mới
             </button>
@@ -632,6 +669,7 @@ const SanPham = () => {
                             className="btn btn-sm btn-outline-warning"
                             onClick={() => openEditModal(item)}
                             title="Sửa sản phẩm"
+                            disabled={userRole === "ROLE_SALE"}
                           >
                             <i className="fas fa-edit"></i>
                           </button>
@@ -640,7 +678,7 @@ const SanPham = () => {
                               className="btn btn-sm btn-outline-danger"
                               onClick={() => handleRemovePromotion(item.id)}
                               title="Xóa khuyến mãi"
-                              disabled={item.status === "unavailable"}
+                              disabled={item.status === "unavailable" || userRole === "ROLE_SALE"}
                             >
                               <i className="fas fa-tag"></i>
                             </button>
@@ -649,7 +687,7 @@ const SanPham = () => {
                               className="btn btn-sm btn-outline-info"
                               onClick={() => openPromoModal(item)}
                               title="Thêm khuyến mãi"
-                              disabled={item.status === "unavailable"}
+                              disabled={item.status === "unavailable" || userRole === "ROLE_SALE"}
                             >
                               <i className="fas fa-tag"></i>
                             </button>

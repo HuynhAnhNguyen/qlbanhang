@@ -87,14 +87,17 @@ export const removeKhuyenMai = async (token, maSP) => {
   return response.data;
 };
 
-// Lấy danh sách khuyến mãi
-export const fetchKhuyenMai = async (token) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/khuyenmai/findAll`, {
-    headers: {
-      Authorization: `${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+// Get sanpham by id
+export const getSanPhamById = async (token, maSP) => {
+  const response = await axios.get(
+    `${REACT_APP_API_URL}/sanpham/findByMaSP?maSP=${maSP}`,
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
   return response.data;
 };
 
@@ -112,17 +115,14 @@ export const fetchKhuyenMaiAvailable = async (token) => {
   return response.data;
 };
 
-// Get sanpham by id
-export const getSanPhamById = async (token, maSP) => {
-  const response = await axios.get(
-    `${REACT_APP_API_URL}/sanpham/findByMaSP?maSP=${maSP}`,
-    {
-      headers: {
-        Authorization: `${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+// Lấy danh sách khuyến mãi
+export const fetchKhuyenMai = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/khuyenmai/findAll`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
   return response.data;
 };
 
@@ -264,7 +264,7 @@ export const fetchNhanVien = async (token) => {
 // Thêm nhan vien
 export const createNhanVien = async (token, nhanvienData) => {
   const response = await axios.post(
-    `${REACT_APP_API_URL}/nhanvien/create`,
+    `${REACT_APP_API_URL}/nhanvien/create?rolename=${nhanvienData.rolename}`,
     nhanvienData,
     {
       headers: {
@@ -317,6 +317,18 @@ export const deleteNhanVien = async (token, maNV) => {
     }
   );
   return await response.data;
+};
+
+// Lấy danh sách nhân viên Active
+export const fetchNhanVienActive = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/nhanvien/findNhanvienActive`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  console.log(response.data);
+  return response.data;
 };
 
 // Fetch all roles
@@ -439,14 +451,25 @@ export const getImageLink = (imageName) =>
   `${REACT_APP_API_URL}/auth/file/getImage/${imageName}`;
 
 
-// Lấy danh sách nhân viên
-export const fetchNhanVienActive = async (token) => {
-  const response = await axios.get(`${REACT_APP_API_URL}/nhanvien/findNhanvienActive`, {
+// Lấy danh sách nhân viên Deleted
+export const fetchNhanVienDeleted = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/nhanvien/findNhanvienDeleted`, {
     headers: {
       Authorization: `${token}`,
       "Content-Type": "application/json",
     },
   });
   console.log(response.data);
+  return response.data;
+};
+
+// Lấy danh sách khách hàng Deleted
+export const fetchKhachHangDeleted = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/khachhang/findKhachHangDeleted`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
   return response.data;
 };

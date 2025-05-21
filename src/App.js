@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -9,49 +9,49 @@ import QuanLyKhachHang from "./pages/QuanLyKhachHang";
 import QuanLyNhanVien from "./pages/QuanLyNhanVien";
 import QuanLyLichSu from "./pages/QuanLyLichSu";
 import QuanLyHoaDon from "./pages/QuanLyHoaDon";
+import Swal from "sweetalert2";
+
+// ProtectedRoute component to handle role-based access
+const ProtectedRoute = ({ element, allowedRoles }) => {
+  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
+
+  // If no token, redirect to login
+  if (!token) {
+    return <Navigate to="/dang-nhap" replace />;
+  }
+
+  // If role is not allowed, redirect to home
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    Swal.fire("Lỗi!", "Bạn không có quyền truy cập!", "error");
+    return <Navigate to="/" replace />;
+  }
+
+  return element;
+};
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/dang-nhap" element={<Login />} />
         <Route path="/trang-chu" element={<Home />} />
-        <Route path="/quan-ly-san-pham" element={<QuanLySanPham />} />
-        <Route path="/quan-ly-khuyen-mai" element={<QuanLyKhuyenMai />} />
+        <Route path="/quan-ly-san-pham" element={<ProtectedRoute element={<QuanLySanPham />} allowedRoles={["ROLE_ADMIN", "ROLE_SALE"]} />} />
+        <Route path="/quan-ly-khuyen-mai" element={<ProtectedRoute element={<QuanLyKhuyenMai />} allowedRoles={["ROLE_ADMIN", "ROLE_SALE"]} />} />
+        <Route path="/quan-ly-khach-hang" element={<ProtectedRoute element={<QuanLyKhachHang />} allowedRoles={["ROLE_ADMIN", "ROLE_SALE"]} />} />
+        <Route path="/quan-ly-nhan-vien" element={<ProtectedRoute element={<QuanLyNhanVien />} allowedRoles={["ROLE_ADMIN"]} />} />
+        <Route path="/quan-ly-hoa-don" element={<ProtectedRoute element={<QuanLyHoaDon />} allowedRoles={["ROLE_ADMIN", "ROLE_SALE"]} />} />
+        <Route path="/quan-ly-lich-su" element={<ProtectedRoute element={<QuanLyLichSu />} allowedRoles={["ROLE_ADMIN", "ROLE_SALE"]} />} />
+        <Route path="*" element={<NotFound />} /> {/* Replace /222 with wildcard */}
+        {/* <Route path="/quan-ly-san-pham" element={<QuanLySanPham />} /> */}
+        {/* <Route path="/quan-ly-khuyen-mai" element={<QuanLyKhuyenMai />} />
         <Route path="/quan-ly-khach-hang" element={<QuanLyKhachHang />} />
         <Route path="/quan-ly-nhan-vien" element={<QuanLyNhanVien />} />
         <Route path="/quan-ly-hoa-don" element={<QuanLyHoaDon />} />
         <Route path="/quan-ly-lich-su" element={<QuanLyLichSu />} />
-
-        {/* Protected routes */}
-        {/* <Route element={<ProtectedRoute roles={["ROLE_ADMIN", "ROLE_USER"]} />}>
-          <Route path="/trang-chu" element={<AdminHome />} />
-          <Route path="/quan-ly-tin-tuc" element={<QuanLyTinTuc />} />
-          <Route path="/quan-ly-dang-vien" element={<QuanLyDangVien />} />
-          <Route path="/quan-ly-chi-bo" element={<QuanLyChiBo />} />
-          <Route path="/quan-ly-ho-so" element={<QuanLyHoSo />} />
-          <Route path="/quan-ly-ky-dang-phi" element={<QuanLyKyDangPhi />} />
-          <Route path="/quan-ly-dang-phi" element={<QuanLyDangPhi />} />
-          <Route path="/quan-ly-phe-duyet" element={<QuanLyPheDuyet />} />
-          <Route path="/bao-cao-thong-ke" element={<BaoCaoThongKe />} />
-        </Route> */}
-
-        {/* Admin only routes */}
-        {/* <Route element={<ProtectedRoute roles={["ROLE_ADMIN"]} />}>
-          <Route path="/sao-luu-khoi-phuc" element={<SaoLuuKhoiPhuc />} />
-          <Route path="/quan-ly-tai-khoan" element={<QuanLyTaiKhoan />} />
-        </Route> */}
-
-        {/* 404 page */}
-        {/* Xử lý route không tồn tại khi đã đăng nhập */}
-        {/* <Route 
-          path="*" 
-          element={
-            localStorage.getItem("token") ? <AuthenticatedNotFound /> : <NotFound /> 
-          } 
-        /> */}
+        <Route path="/222" element={<NotFound />} /> */}
+        
       </Routes>
     </Router>
   );

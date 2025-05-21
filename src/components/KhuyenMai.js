@@ -43,6 +43,7 @@ const KhuyenMai = () => {
   });
 
   const token = localStorage.getItem("token");
+   const userRole = localStorage.getItem("role");
 
   // Validate form data
   const validateForm = () => {
@@ -90,6 +91,11 @@ const KhuyenMai = () => {
 
   // Add promotion
   const handleAddPromotion = async () => {
+    if (userRole === "ROLE_SALE") {
+          Swal.fire("Lỗi!", "Bạn không có quyền thêm khuyến mãi!", "error");
+          return;
+        }
+
     if (!validateForm()) {
       Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
       return;
@@ -116,6 +122,11 @@ const KhuyenMai = () => {
 
   // Edit promotion
   const handleUpdatePromotion = async () => {
+    if (userRole === "ROLE_SALE") {
+          Swal.fire("Lỗi!", "Bạn không có quyền cập nhật khuyến mãi!", "error");
+          return;
+        }
+
     if (!validateForm()) {
       Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
       return;
@@ -149,6 +160,11 @@ const KhuyenMai = () => {
 
   // Open add modal
   const openAddModal = () => {
+    if (userRole === "ROLE_SALE") {
+          Swal.fire("Lỗi!", "Bạn không có quyền thêm khuyến mãi!", "error");
+          return;
+        }
+
     setFormData({
       noidung: "",
       ngaybd: "",
@@ -162,6 +178,11 @@ const KhuyenMai = () => {
 
   // Open edit modal
   const openEditModal = async (promo) => {
+    if (userRole === "ROLE_SALE") {
+          Swal.fire("Lỗi!", "Bạn không có quyền cập nhật khuyến mãi!", "error");
+          return;
+        }
+
     setSelectedPromo(promo);
     setFormData({
       noidung: promo.noidung,
@@ -362,6 +383,7 @@ const KhuyenMai = () => {
             <button
               className="btn btn-success custom-sm-btn-dangvien"
               onClick={openAddModal}
+              disabled={userRole === "ROLE_SALE"}
             >
               <i className="fas fa-plus me-2"></i>Thêm mới
             </button>
@@ -433,6 +455,7 @@ const KhuyenMai = () => {
                             className="btn btn-sm btn-outline-warning"
                             onClick={() => openEditModal(item)}
                             title="Sửa khuyến mãi"
+                            disabled={userRole === "ROLE_SALE"}
                           >
                             <i className="fas fa-edit"></i>
                           </button>
