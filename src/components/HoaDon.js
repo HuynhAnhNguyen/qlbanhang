@@ -24,11 +24,8 @@ import {
   fetchHoaDonHomNay,
   fetchHoaDonQuyNay,
   fetchHoaDonThangNay,
-  fetchKhachHang,
   fetchKhachHangActive,
-  fetchNhanVien,
   fetchNhanVienActive,
-  fetchSanPham,
   fetchSanPhamAvailable,
 } from "../services/apiService";
 
