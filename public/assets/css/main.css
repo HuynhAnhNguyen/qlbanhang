@@ -12925,3 +12925,8 @@ span.flatpickr-weekday {
     grid-template-columns: 1fr;
   }
 }
+
+/* Chi tiết log */
+.rounded-border04{
+  border-radius: 0.4rem !important;
+}

@@ -1,3392 +1,1294 @@
-// // import React, { useState, useEffect } from "react";
-// // import {
-// //   Modal,
-// //   Button,
-// //   Form,
-// //   Row,
-// //   Col,
-// //   Badge,
-// //   ListGroup,
-// // } from "react-bootstrap";
-// // import { FaHistory, FaUser, FaClock, FaTasks } from "react-icons/fa";
-// // import {
-// //   fetchLog,
-// //   fetchLogByNhanVienId,
-// //   fetchNhanVien,
-// // } from "../services/apiService";
-
-// // const LichSu = () => {
-// //   const [logList, setLogList] = useState([]);
-// //   const [employeeList, setEmployeeList] = useState([]);
-// //   const [searchType, setSearchType] = useState("all");
-// //   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-// //   const [currentPage, setCurrentPage] = useState(1);
-// //   const [loading, setLoading] = useState(false);
-// //   const [error, setError] = useState(null);
-// //   const itemsPerPage = 10;
-
-// //   // Modal states
-// //   const [showDetailModal, setShowDetailModal] = useState(false);
-// //   const [selectedLog, setSelectedLog] = useState(null);
-
-// //   const token = localStorage.getItem("token");
-
-// //   // Fetch all logs
-// //   const loadAllLogs = async () => {
-// //     setLoading(true);
-// //     try {
-// //       const data = await fetchLog(token);
-// //       if (data.resultCode === 0) {
-// //         setLogList(data.data);
-// //         setError(null);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải danh sách lịch sử");
-// //       }
-// //     } catch (err) {
-// //       setError("Không thể tải danh sách lịch sử");
-// //       console.error("Error loading logs:", err);
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   // Fetch logs by employee ID
-// //   const loadLogsByMaNV = async (maNV) => {
-// //     setLoading(true);
-// //     try {
-// //       const data = await fetchLogByNhanVienId(token, maNV);
-// //       if (data.resultCode === 0) {
-// //         setLogList(data.data);
-// //         setError(null);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải lịch sử của nhân viên");
-// //       }
-// //     } catch (err) {
-// //       setError("Không thể tải lịch sử của nhân viên");
-// //       console.error("Error loading logs by MaNV:", err);
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   // Fetch all employees
-// //   const loadEmployees = async () => {
-// //     try {
-// //       const data = await fetchNhanVien(token);
-// //       if (data.resultCode === 0) {
-// //         setEmployeeList(data.data);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải danh sách nhân viên");
-// //       }
-// //     } catch (err) {
-// //       console.error("Error loading employees:", err);
-// //     }
-// //   };
-
-// //   // Handle search type change
-// //   const handleSearchTypeChange = (e) => {
-// //     const type = e.target.value;
-// //     setSearchType(type);
-// //     setSelectedEmployeeId("");
-// //     setCurrentPage(1);
-
-// //     if (type === "all") {
-// //       loadAllLogs();
-// //     }
-// //   };
-
-// //   // Handle employee selection change
-// //   const handleEmployeeChange = (e) => {
-// //     const maNV = e.target.value;
-// //     setSelectedEmployeeId(maNV);
-// //     setCurrentPage(1);
-
-// //     if (maNV) {
-// //       loadLogsByMaNV(maNV);
-// //     }
-// //   };
-
-// //   // Open detail modal
-// //   const openDetailModal = (log) => {
-// //     setSelectedLog(log);
-// //     setShowDetailModal(true);
-// //   };
-
-// //   // Load initial data on mount
-// //   useEffect(() => {
-// //     loadAllLogs();
-// //     loadEmployees();
-// //   }, []);
-
-// //   // Pagination
-// //   const totalPages = Math.ceil(logList.length / itemsPerPage);
-// //   const currentItems = logList.slice(
-// //     (currentPage - 1) * itemsPerPage,
-// //     currentPage * itemsPerPage
-// //   );
-
-// //   // Format datetime for display
-// //   const formatDateTime = (dateTimeString) => {
-// //     if (!dateTimeString) return "";
-// //     return dateTimeString;
-// //   };
-
-// //   // Parse JSON values safely
-// //   // Parse JSON values safely and display in a user-friendly format
-// //   const parseJsonValue = (value, doituong, hanhdong) => {
-// //     if (!value) return <span className="text-muted">Không có</span>;
-
-// //     try {
-// //       const parsed = JSON.parse(value);
-// //       switch (doituong) {
-// //         case "SANPHAM":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Mã sản phẩm:</strong> {parsed.id}
-// //               </p>
-// //               <p>
-// //                 <strong>Tên sản phẩm:</strong> {parsed.tensp}
-// //               </p>
-// //               <p>
-// //                 <strong>Đơn vị tính:</strong> {parsed.dvt}
-// //               </p>
-// //               <p>
-// //                 <strong>Nước sản xuất:</strong> {parsed.nuocsx}
-// //               </p>
-// //               <p>
-// //                 <strong>Giá:</strong>{" "}
-// //                 {Number(parsed.gia).toLocaleString("vi-VN")} VND
-// //               </p>
-// //               {parsed.makm ? (
-// //                 <div>
-// //                   <p>
-// //                     <strong>Khuyến mãi:</strong> {parsed.makm.noidung} (Giảm{" "}
-// //                     {parsed.makm.phantram}%)
-// //                   </p>
-// //                   <p>
-// //                     <strong>Thời gian khuyến mãi:</strong> {parsed.makm.ngaybd}{" "}
-// //                     - {parsed.makm.ngaykt}
-// //                   </p>
-// //                 </div>
-// //               ) : (
-// //                 <p>
-// //                   <strong>Khuyến mãi:</strong> Không có
-// //                 </p>
-// //               )}
-// //               <p>
-// //                 <strong>Trạng thái:</strong>{" "}
-// //                 {parsed.status === "available" ? "Có sẵn" : "Hết hàng"}
-// //               </p>
-// //               <p>
-// //                 <strong>Hình ảnh:</strong> {parsed.imageurl ? "Có" : "Không có"}
-// //               </p>
-// //             </div>
-// //           );
-// //         case "KHUYENMAI":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Mã khuyến mãi:</strong> {parsed.id}
-// //               </p>
-// //               <p>
-// //                 <strong>Nội dung:</strong> {parsed.noidung}
-// //               </p>
-// //               <p>
-// //                 <strong>Phần trăm giảm:</strong> {parsed.phantram}%
-// //               </p>
-// //               <p>
-// //                 <strong>Thời gian:</strong> {parsed.ngaybd} - {parsed.ngaykt}
-// //               </p>
-// //               <p>
-// //                 <strong>Trạng thái:</strong> {parsed.status}
-// //               </p>
-// //             </div>
-// //           );
-// //         case "NHANVIEN":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Mã nhân viên:</strong> {parsed.id}
-// //               </p>
-// //               <p>
-// //                 <strong>Họ tên:</strong> {parsed.hoten}
-// //               </p>
-// //               <p>
-// //                 <strong>Số điện thoại:</strong> {parsed.sodt}
-// //               </p>
-// //               <p>
-// //                 <strong>Ngày vào làm:</strong> {parsed.ngvl}
-// //               </p>
-// //               <p>
-// //                 <strong>Vai trò:</strong> {parsed.roleid.rolename}
-// //               </p>
-// //               <p>
-// //                 <strong>Trạng thái:</strong>{" "}
-// //                 {parsed.status === "active" ? "Hoạt động" : "Không hoạt động"}
-// //               </p>
-// //             </div>
-// //           );
-// //         default:
-// //           return <pre>{JSON.stringify(parsed, null, 2)}</pre>;
-// //       }
-// //     } catch {
-// //       return <span>{value}</span>;
-// //     }
-// //   };
-
-// //   return (
-// //     <div className="container-fluid p-0 position-relative d-flex flex-column min-vh-100">
-// //       <div className="p-4 flex-grow-1">
-// //         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-// //           <h1 className="h3 mb-3 mb-md-0">Lịch sử thao tác</h1>
-// //           <div className="d-flex gap-2 align-items-center">
-// //             <Form.Select
-// //               value={searchType}
-// //               onChange={handleSearchTypeChange}
-// //               style={{ width: "200px" }}
-// //             >
-// //               <option value="all">Tất cả</option>
-// //               <option value="employee">Theo nhân viên</option>
-// //             </Form.Select>
-
-// //             {searchType === "employee" && (
-// //               <Form.Select
-// //                 value={selectedEmployeeId}
-// //                 onChange={handleEmployeeChange}
-// //                 style={{ width: "200px" }}
-// //               >
-// //                 <option value="">Chọn nhân viên</option>
-// //                 {employeeList.map((employee) => (
-// //                   <option key={employee.id} value={employee.id}>
-// //                     {employee.hoten} ({employee.id})
-// //                   </option>
-// //                 ))}
-// //               </Form.Select>
-// //             )}
-// //           </div>
-// //         </div>
-
-// //         {loading && (
-// //           <div className="text-center py-4">
-// //             <div className="spinner-border text-primary" role="status">
-// //               <span className="visually-hidden">Loading...</span>
-// //             </div>
-// //           </div>
-// //         )}
-
-// //         {error && <div className="alert alert-danger">{error}</div>}
-
-// //         {searchType === "employee" && !selectedEmployeeId ? (
-// //           <div className="text-center py-4 color-black">
-// //             Vui lòng chọn nhân viên để xem lịch sử
-// //           </div>
-// //         ) : searchType === "employee" && currentItems.length === 0 ? (
-// //           <div className="text-center py-4 color-black">
-// //             Nhân viên này không có lịch sử thao tác
-// //           </div>
-// //         ) : currentItems.length === 0 ? (
-// //           <div className="text-center py-4 color-black">
-// //             Không tìm thấy lịch sử thao tác nào!
-// //           </div>
-// //         ) : (
-// //           <>
-// //             <div className="table-responsive mb-4">
-// //               <table className="table table-hover">
-// //                 <thead className="table-light">
-// //                   <tr>
-// //                     <th style={{ width: "5%" }}>STT</th>
-// //                     <th style={{ width: "15%" }}>Ngày giờ</th>
-// //                     <th style={{ width: "15%" }}>Người thực hiện</th>
-// //                     <th style={{ width: "15%" }}>Hành động</th>
-// //                     <th style={{ width: "15%" }}>Đối tượng</th>
-// //                     <th style={{ width: "25%" }}>Giá trị cũ</th>
-// //                     <th style={{ width: "10%" }}>Thao tác</th>
-// //                   </tr>
-// //                 </thead>
-// //                 <tbody>
-// //                   {currentItems.map((item, index) => (
-// //                     <tr key={item.id}>
-// //                       <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-// //                       <td>{formatDateTime(item.ngaygio)}</td>
-// //                       <td>{item.nguoithuchien}</td>
-// //                       <td>
-// //                         <Badge
-// //                           bg={
-// //                             item.hanhdong === "LOGIN"
-// //                               ? "success"
-// //                               : item.hanhdong === "DELETE"
-// //                               ? "danger"
-// //                               : "primary"
-// //                           }
-// //                         >
-// //                           {item.hanhdong}
-// //                         </Badge>
-// //                       </td>
-// //                       <td>{item.doituong}</td>
-// //                       <td>
-// //                         {parseJsonValue(item.giatriCu).substring(0, 50)}...
-// //                       </td>
-// //                       <td>
-// //                         <button
-// //                           className="btn btn-sm btn-outline-primary btn-outline-primary-detail"
-// //                           onClick={() => openDetailModal(item)}
-// //                           title="Xem chi tiết"
-// //                         >
-// //                           <i className="fas fa-eye"></i>
-// //                         </button>
-// //                       </td>
-// //                     </tr>
-// //                   ))}
-// //                 </tbody>
-// //               </table>
-// //             </div>
-
-// //             {totalPages > 1 && (
-// //               <div className="mt-auto p-3 bg-light border-top">
-// //                 <nav aria-label="Page navigation">
-// //                   <ul className="pagination justify-content-center mb-0">
-// //                     <li
-// //                       className={`page-item ${
-// //                         currentPage === 1 ? "disabled" : ""
-// //                       }`}
-// //                     >
-// //                       <button
-// //                         className="page-link"
-// //                         onClick={() =>
-// //                           setCurrentPage((prev) => Math.max(prev - 1, 1))
-// //                         }
-// //                         disabled={currentPage === 1}
-// //                       >
-// //                         « Trước
-// //                       </button>
-// //                     </li>
-// //                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-// //                       (page) => (
-// //                         <li
-// //                           key={page}
-// //                           className={`page-item ${
-// //                             page === currentPage ? "active" : ""
-// //                           }`}
-// //                         >
-// //                           <button
-// //                             className="page-link"
-// //                             onClick={() => setCurrentPage(page)}
-// //                           >
-// //                             {page}
-// //                           </button>
-// //                         </li>
-// //                       )
-// //                     )}
-// //                     <li
-// //                       className={`page-item ${
-// //                         currentPage === totalPages ? "disabled" : ""
-// //                       }`}
-// //                     >
-// //                       <button
-// //                         className="page-link"
-// //                         onClick={() =>
-// //                           setCurrentPage((prev) =>
-// //                             Math.min(prev + 1, totalPages)
-// //                           )
-// //                         }
-// //                         disabled={currentPage === totalPages}
-// //                       >
-// //                         Tiếp »
-// //                       </button>
-// //                     </li>
-// //                   </ul>
-// //                 </nav>
-// //               </div>
-// //             )}
-// //           </>
-// //         )}
-// //       </div>
-
-// //       {/* Detail Modal */}
-// //       <Modal
-// //         show={showDetailModal}
-// //         onHide={() => setShowDetailModal(false)}
-// //         size="lg"
-// //       >
-// //         <Modal.Header closeButton>
-// //           <Modal.Title>Chi tiết lịch sử thao tác</Modal.Title>
-// //         </Modal.Header>
-// //         {/* <Modal.Body>
-// //           {selectedLog && (
-// //             <ListGroup variant="flush">
-// //               <ListGroup.Item>
-// //                 <FaHistory className="me-2" />
-// //                 <strong>ID:</strong> {selectedLog.id}
-// //               </ListGroup.Item>
-// //               <ListGroup.Item>
-// //                 <FaClock className="me-2" />
-// //                 <strong>Ngày giờ:</strong> {formatDateTime(selectedLog.ngaygio)}
-// //               </ListGroup.Item>
-// //               <ListGroup.Item>
-// //                 <FaUser className="me-2" />
-// //                 <strong>Người thực hiện:</strong> {selectedLog.nguoithuchien}
-// //               </ListGroup.Item>
-// //               <ListGroup.Item>
-// //                 <FaTasks className="me-2" />
-// //                 <strong>Hành động:</strong>{" "}
-// //                 <Badge
-// //                   bg={
-// //                     selectedLog.hanhdong === "LOGIN"
-// //                       ? "success"
-// //                       : selectedLog.hanhdong === "DELETE"
-// //                       ? "danger"
-// //                       : "primary"
-// //                   }
-// //                 >
-// //                   {selectedLog.hanhdong}
-// //                 </Badge>
-// //               </ListGroup.Item>
-// //               <ListGroup.Item>
-// //                 <strong>Đối tượng:</strong> {selectedLog.doituong}
-// //               </ListGroup.Item>
-// //               <ListGroup.Item>
-// //                 <strong>Giá trị cũ:</strong>
-// //                 <pre>{parseJsonValue(selectedLog.giatriCu)}</pre>
-// //               </ListGroup.Item>
-// //               <ListGroup.Item>
-// //                 <strong>Giá trị mới:</strong>{" "}
-// //                 {parseJsonValue(selectedLog.giatriMoi)}
-// //               </ListGroup.Item>
-// //             </ListGroup>
-// //           )}
-// //         </Modal.Body> */}
-// //         <Modal.Body>
-// //           {selectedLog && (
-// //             <div>
-// //               <ListGroup variant="flush">
-// //                 <ListGroup.Item>
-// //                   <FaHistory className="me-2" />
-// //                   <strong>ID:</strong> {selectedLog.id}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <FaClock className="me-2" />
-// //                   <strong>Ngày giờ:</strong>{" "}
-// //                   {formatDateTime(selectedLog.ngaygio)}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <FaUser className="me-2" />
-// //                   <strong>Người thực hiện:</strong> {selectedLog.nguoithuchien}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <FaTasks className="me-2" />
-// //                   <strong>Hành động:</strong>{" "}
-// //                   <Badge
-// //                     bg={
-// //                       selectedLog.hanhdong === "LOGIN"
-// //                         ? "success"
-// //                         : selectedLog.hanhdong === "DELETE"
-// //                         ? "danger"
-// //                         : selectedLog.hanhdong === "UPDATE"
-// //                         ? "warning"
-// //                         : selectedLog.hanhdong.includes("KHUYENMAI")
-// //                         ? "info"
-// //                         : "primary"
-// //                     }
-// //                   >
-// //                     {selectedLog.hanhdong === "LOGIN"
-// //                       ? "Đăng nhập"
-// //                       : selectedLog.hanhdong === "UPDATE"
-// //                       ? "Cập nhật"
-// //                       : selectedLog.hanhdong === "ADD_KHUYENMAI"
-// //                       ? "Thêm khuyến mãi"
-// //                       : selectedLog.hanhdong === "REMOVE_KHUYENMAI"
-// //                       ? "Xóa khuyến mãi"
-// //                       : selectedLog.hanhdong}
-// //                   </Badge>
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <strong>Đối tượng:</strong>{" "}
-// //                   {selectedLog.doituong === "SANPHAM"
-// //                     ? "Sản phẩm"
-// //                     : selectedLog.doituong === "KHUYENMAI"
-// //                     ? "Khuyến mãi"
-// //                     : selectedLog.doituong === "NHANVIEN"
-// //                     ? "Nhân viên"
-// //                     : selectedLog.doituong}
-// //                 </ListGroup.Item>
-// //               </ListGroup>
-// //               {selectedLog.hanhdong !== "LOGIN" && (
-// //                 <Row className="mt-3">
-// //                   <Col md={6}>
-// //                     <h6>
-// //                       <strong>Giá trị cũ</strong>
-// //                     </h6>
-// //                     {parseJsonValue(
-// //                       selectedLog.giatriCu,
-// //                       selectedLog.doituong,
-// //                       selectedLog.hanhdong
-// //                     )}
-// //                   </Col>
-// //                   <Col md={6}>
-// //                     <h6>
-// //                       <strong>Giá trị mới</strong>
-// //                     </h6>
-// //                     {parseJsonValue(
-// //                       selectedLog.giatriMoi,
-// //                       selectedLog.doituong,
-// //                       selectedLog.hanhdong
-// //                     )}
-// //                   </Col>
-// //                 </Row>
-// //               )}
-// //             </div>
-// //           )}
-// //         </Modal.Body>
-// //         <Modal.Footer>
-// //           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-// //             Đóng
-// //           </Button>
-// //         </Modal.Footer>
-// //       </Modal>
-// //     </div>
-// //   );
-// // };
-
-// // export default LichSu;
-
-
-// // import React, { useState, useEffect } from "react";
-// // import {
-// //   Modal,
-// //   Button,
-// //   Form,
-// //   Row,
-// //   Col,
-// //   Badge,
-// //   ListGroup,
-// //   Card,
-// // } from "react-bootstrap";
-// // import { FaHistory, FaUser, FaClock, FaTasks, FaSearch } from "react-icons/fa";
-// // import { FaThLarge, FaTh, FaTable, FaCalendarAlt } from 'react-icons/fa';
-
-// // import {
-// //   fetchLog,
-// //   fetchLogByNhanVienId,
-// //   fetchNhanVien,
-// // } from "../services/apiService";
-
-// // const LichSu = () => {
-// //   const [logList, setLogList] = useState([]);
-// //   const [employeeList, setEmployeeList] = useState([]);
-// //   const [searchType, setSearchType] = useState("all");
-// //   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-// //   const [currentPage, setCurrentPage] = useState(1);
-// //   const [loading, setLoading] = useState(false);
-// //   const [error, setError] = useState(null);
-// //   const itemsPerPage = 10;
-
-// //   // Modal states
-// //   const [showDetailModal, setShowDetailModal] = useState(false);
-// //   const [selectedLog, setSelectedLog] = useState(null);
-
-// //   const [viewMode, setViewMode] = useState('cards'); 
-
-// //   const token = localStorage.getItem("token");
-
-// //    const renderView = () => {
-// //     switch(viewMode) {
-// //       case 'table':
-// //         return <TableView logs={currentItems} />;
-// //       case 'timeline':
-// //         return <TimelineView logs={currentItems} />;
-// //       case 'calendar':
-// //         return <CalendarView logs={currentItems} />;
-// //       case 'compact':
-// //         return <CompactCardView logs={currentItems} />;
-// //       default:
-// //         return <CardView logs={currentItems} />;
-// //     }
-// //   };
-
-// //   // Fetch all logs
-// //   const loadAllLogs = async () => {
-// //     setLoading(true);
-// //     try {
-// //       const data = await fetchLog(token);
-// //       if (data.resultCode === 0) {
-// //         setLogList(data.data);
-// //         setError(null);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải danh sách lịch sử");
-// //       }
-// //     } catch (err) {
-// //       setError("Không thể tải danh sách lịch sử");
-// //       console.error("Error loading logs:", err);
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   // Fetch logs by employee ID
-// //   const loadLogsByMaNV = async (maNV) => {
-// //     setLoading(true);
-// //     try {
-// //       const data = await fetchLogByNhanVienId(token, maNV);
-// //       if (data.resultCode === 0) {
-// //         setLogList(data.data);
-// //         setError(null);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải lịch sử của nhân viên");
-// //       }
-// //     } catch (err) {
-// //       setError("Không thể tải lịch sử của nhân viên");
-// //       console.error("Error loading logs by MaNV:", err);
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   // Fetch all employees
-// //   const loadEmployees = async () => {
-// //     try {
-// //       const data = await fetchNhanVien(token);
-// //       if (data.resultCode === 0) {
-// //         setEmployeeList(data.data);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải danh sách nhân viên");
-// //       }
-// //     } catch (err) {
-// //       console.error("Error loading employees:", err);
-// //     }
-// //   };
-
-// //   // Handle search type change
-// //   const handleSearchTypeChange = (e) => {
-// //     const type = e.target.value;
-// //     setSearchType(type);
-// //     setSelectedEmployeeId("");
-// //     setCurrentPage(1);
-
-// //     if (type === "all") {
-// //       loadAllLogs();
-// //     }
-// //   };
-
-// //   // Handle employee selection change
-// //   const handleEmployeeChange = (e) => {
-// //     const maNV = e.target.value;
-// //     setSelectedEmployeeId(maNV);
-// //     setCurrentPage(1);
-
-// //     if (maNV) {
-// //       loadLogsByMaNV(maNV);
-// //     }
-// //   };
-
-// //   // Open detail modal
-// //   const openDetailModal = (log) => {
-// //     setSelectedLog(log);
-// //     setShowDetailModal(true);
-// //   };
-
-// //   // Load initial data on mount
-// //   useEffect(() => {
-// //     loadAllLogs();
-// //     loadEmployees();
-// //   }, []);
-
-// //   // Pagination
-// //   const totalPages = Math.ceil(logList.length / itemsPerPage);
-// //   const currentItems = logList.slice(
-// //     (currentPage - 1) * itemsPerPage,
-// //     currentPage * itemsPerPage
-// //   );
-
-// //   // Format datetime for display
-// //   const formatDateTime = (dateTimeString) => {
-// //     if (!dateTimeString) return "";
-// //     const [date, time] = dateTimeString.split(" ");
-// //     return `${time} ${date}`;
-// //   };
-
-// //   // Translate action to Vietnamese
-// //   const translateAction = (action) => {
-// //     switch (action) {
-// //       case "LOGIN":
-// //         return "Đăng nhập hệ thống";
-// //       case "UPDATE":
-// //         return "Cập nhật thông tin";
-// //       case "ADD_KHUYENMAI":
-// //         return "Áp dụng khuyến mãi";
-// //       case "REMOVE_KHUYENMAI":
-// //         return "Gỡ khuyến mãi";
-// //       default:
-// //         return action;
-// //     }
-// //   };
-
-// //   // Translate object type to Vietnamese
-// //   const translateObjectType = (type) => {
-// //     switch (type) {
-// //       case "SANPHAM":
-// //         return "Sản phẩm";
-// //       case "KHUYENMAI":
-// //         return "Chương trình khuyến mãi";
-// //       case "NHANVIEN":
-// //         return "Nhân viên";
-// //       default:
-// //         return type;
-// //     }
-// //   };
-
-// //   // Parse JSON values safely and format for display
-// //   const parseLogDetails = (log) => {
-// //     try {
-// //       const oldValue = log.giatriCu ? JSON.parse(log.giatriCu) : null;
-// //       const newValue = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
-
-// //       switch (log.doituong) {
-// //         case "SANPHAM":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Sản phẩm:</strong> {oldValue?.tensp || newValue?.tensp} (
-// //                 {oldValue?.id || newValue?.id})
-// //               </p>
-              
-// //               {log.hanhdong === "UPDATE" && (
-// //                 <>
-// //                   {oldValue?.imageurl !== newValue?.imageurl && (
-// //                     <p>- {newValue?.imageurl ? "Thêm ảnh sản phẩm" : "Xóa ảnh sản phẩm"}</p>
-// //                   )}
-// //                   {oldValue?.tensp !== newValue?.tensp && (
-// //                     <p>- Đổi tên sản phẩm: {oldValue?.tensp} → {newValue?.tensp}</p>
-// //                   )}
-// //                   {oldValue?.gia !== newValue?.gia && (
-// //                     <p>- Đổi giá: {oldValue?.gia} → {newValue?.gia}</p>
-// //                   )}
-// //                 </>
-// //               )}
-              
-// //               {log.hanhdong === "ADD_KHUYENMAI" && (
-// //                 <p>
-// //                   - Áp dụng khuyến mãi: {newValue?.makm?.noidung} (Giảm{" "}
-// //                   {newValue?.makm?.phantram}%)
-// //                 </p>
-// //               )}
-              
-// //               {log.hanhdong === "REMOVE_KHUYENMAI" && (
-// //                 <p>
-// //                   - Gỡ khuyến mãi: {oldValue?.makm?.noidung} (Giảm{" "}
-// //                   {oldValue?.makm?.phantram}%)
-// //                 </p>
-// //               )}
-// //             </div>
-// //           );
-          
-// //         case "KHUYENMAI":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Chương trình:</strong> {oldValue?.noidung || newValue?.noidung} (
-// //                 {oldValue?.id || newValue?.id})
-// //               </p>
-              
-// //               {oldValue?.phantram !== newValue?.phantram && (
-// //                 <p>- Thay đổi phần trăm giảm giá: {oldValue?.phantram}% → {newValue?.phantram}%</p>
-// //               )}
-              
-// //               {(oldValue?.ngaybd !== newValue?.ngaybd || oldValue?.ngaykt !== newValue?.ngaykt) && (
-// //                 <p>- Thay đổi thời gian áp dụng: {oldValue?.ngaybd} - {oldValue?.ngaykt} → {newValue?.ngaybd} - {newValue?.ngaykt}</p>
-// //               )}
-// //             </div>
-// //           );
-          
-// //         case "NHANVIEN":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Nhân viên:</strong> {oldValue?.hoten || newValue?.hoten} (
-// //                 {oldValue?.id || newValue?.id})
-// //               </p>
-// //             </div>
-// //           );
-          
-// //         default:
-// //           return null;
-// //       }
-// //     } catch (e) {
-// //       return null;
-// //     }
-// //   };
-
-// //   // Group logs by time and action for better display
-// //   const groupLogs = (logs) => {
-// //     const grouped = {};
-    
-// //     logs.forEach(log => {
-// //       const date = log.ngaygio.split(" ")[0];
-// //       if (!grouped[date]) {
-// //         grouped[date] = [];
-// //       }
-// //       grouped[date].push(log);
-// //     });
-    
-// //     return grouped;
-// //   };
-
-// //   const groupedLogs = groupLogs(currentItems);
-
-// //   const CalendarView = ({ logs }) => {
-// //   const groupedByDate = groupLogs(logs);
-
-// //   return (
-// //     <div className="calendar-view">
-// //       {Object.entries(groupedByDate).map(([date, dateLogs]) => (
-// //         <div key={date} className="calendar-day">
-// //           <div className="calendar-date-header">
-// //             <h5>{date}</h5>
-// //           </div>
-// //           <div className="calendar-events">
-// //             {dateLogs.map(log => (
-// //               <div key={log.id} className="calendar-event">
-// //                 <div className="event-time">
-// //                   {log.ngaygio.split(' ')[1]}
-// //                 </div>
-// //                 <div className="event-content">
-// //                   <div className="event-title">
-// //                     {translateAction(log.hanhdong)}
-// //                   </div>
-// //                   <div className="event-details">
-// //                     {parseLogDetails(log)}
-// //                   </div>
-// //                   <div className="event-meta">
-// //                     <span className="badge bg-secondary me-2">
-// //                       {translateObjectType(log.doituong)}
-// //                     </span>
-// //                     <span>{log.nguoithuchien.trim()}</span>
-// //                   </div>
-// //                 </div>
-// //               </div>
-// //             ))}
-// //           </div>
-// //         </div>
-// //       ))}
-// //     </div>
-// //   );
-// // };
-
-// // const TableView = ({ logs }) => {
-// //   return (
-// //     <div className="table-responsive">
-// //       <table className="table table-hover">
-// //         <thead>
-// //           <tr>
-// //             <th>Thời gian</th>
-// //             <th>Hành động</th>
-// //             <th>Đối tượng</th>
-// //             <th>Người thực hiện</th>
-// //             <th>Chi tiết</th>
-// //           </tr>
-// //         </thead>
-// //         <tbody>
-// //           {logs.map(log => (
-// //             <tr key={log.id}>
-// //               <td>{formatDateTime(log.ngaygio)}</td>
-// //               <td>{translateAction(log.hanhdong)}</td>
-// //               <td>{translateObjectType(log.doituong)}</td>
-// //               <td>{log.nguoithuchien.trim()}</td>
-// //               <td>
-// //                 <Button 
-// //                   variant="link" 
-// //                   size="sm"
-// //                   onClick={() => openDetailModal(log)}
-// //                 >
-// //                   Xem
-// //                 </Button>
-// //               </td>
-// //             </tr>
-// //           ))}
-// //         </tbody>
-// //       </table>
-// //     </div>
-// //   );
-// // };
-
-// // const TimelineView = ({ logs }) => {
-// //   return (
-// //     <div className="timeline">
-// //       {logs.map((log, index) => (
-// //         <div key={log.id} className={`timeline-item ${index % 2 === 0 ? 'left' : 'right'}`}>
-// //           <div className="timeline-dot"></div>
-// //           <div className="timeline-content">
-// //             <div className="timeline-header">
-// //               <span className="timeline-time">{formatDateTime(log.ngaygio)}</span>
-// //               <span className="timeline-action">{translateAction(log.hanhdong)}</span>
-// //             </div>
-// //             <div className="timeline-body">
-// //               {parseLogDetails(log)}
-// //             </div>
-// //             <div className="timeline-footer">
-// //               <span className="badge bg-secondary">{translateObjectType(log.doituong)}</span>
-// //               <span className="ms-2">{log.nguoithuchien.trim()}</span>
-// //             </div>
-// //           </div>
-// //         </div>
-// //       ))}
-// //     </div>
-// //   );
-// // };
-
-// //   return (
-// //     <div className="container-fluid p-0 position-relative d-flex flex-column min-vh-100">
-// //       <div className="p-4 flex-grow-1">
-// //         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-// //           <h1 className="h3 mb-3 mb-md-0">Lịch sử thao tác</h1>
-// //           <div className="d-flex gap-2 align-items-center">
-            
-// //             {/* View mode selector */}
-// //             <div className="btn-group" role="group">
-// //               <Button 
-// //                 variant={viewMode === 'cards' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('cards')}
-// //                 title="Thẻ"
-// //               >
-// //                 <FaThLarge />
-// //               </Button>
-// //               {/* <Button 
-// //                 variant={viewMode === 'compact' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('compact')}
-// //                 title="Thẻ nhỏ"
-// //               >
-// //                 <FaTh />
-// //               </Button> */}
-// //               <Button 
-// //                 variant={viewMode === 'table' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('table')}
-// //                 title="Bảng"
-// //               >
-// //                 <FaTable />
-// //               </Button>
-// //               <Button 
-// //                 variant={viewMode === 'timeline' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('timeline')}
-// //                 title="Dòng thời gian"
-// //               >
-// //                 <FaHistory />
-// //               </Button>
-// //               <Button 
-// //                 variant={viewMode === 'calendar' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('calendar')}
-// //                 title="Lịch"
-// //               >
-// //                 <FaCalendarAlt />
-// //               </Button>
-// //             </div>
-            
-// //             <Form.Select
-// //               value={searchType}
-// //               onChange={handleSearchTypeChange}
-// //               style={{ width: "200px" }}
-// //             >
-// //               <option value="all">Tất cả</option>
-// //               <option value="employee">Theo nhân viên</option>
-// //             </Form.Select>
-
-// //             {searchType === "employee" && (
-// //               <Form.Select
-// //                 value={selectedEmployeeId}
-// //                 onChange={handleEmployeeChange}
-// //                 style={{ width: "250px" }}
-// //               >
-// //                 <option value="">Chọn nhân viên...</option>
-// //                 {employeeList.map((employee) => (
-// //                   <option key={employee.id} value={employee.id}>
-// //                     {employee.hoten} ({employee.id.trim()})
-// //                   </option>
-// //                 ))}
-// //               </Form.Select>
-// //             )}
-// //           </div>
-// //         </div>
-
-// //         {loading && (
-// //           <div className="text-center py-4">
-// //             <div className="spinner-border text-primary" role="status">
-// //               <span className="visually-hidden">Loading...</span>
-// //             </div>
-// //           </div>
-// //         )}
-
-// //         {error && <div className="alert alert-danger">{error}</div>}
-
-// //         {searchType === "employee" && !selectedEmployeeId ? (
-// //           <div className="text-center py-4 text-muted">
-// //             <FaSearch className="me-2" />
-// //             Vui lòng chọn nhân viên để xem lịch sử
-// //           </div>
-// //         ) : searchType === "employee" && currentItems.length === 0 ? (
-// //           <div className="text-center py-4 text-muted">
-// //             Nhân viên này không có lịch sử thao tác
-// //           </div>
-// //         ) : currentItems.length === 0 ? (
-// //           <div className="text-center py-4 text-muted">
-// //             Không tìm thấy lịch sử thao tác nào
-// //           </div>
-// //         ) : (
-// //           <>
-// //             {Object.entries(groupedLogs).map(([date, logs]) => (
-// //               <div key={date} className="mb-4">
-// //                 <h5 className="mb-3 text-primary">{date}</h5>
-                
-// //                 {logs.map((log) => (
-// //                   <Card key={log.id} className="mb-3 shadow-sm">
-// //                     <Card.Body>
-// //                       <div className="d-flex justify-content-between align-items-start">
-// //                         <div>
-// //                           <h6 className="mb-2">
-// //                             {translateAction(log.hanhdong)}
-// //                           </h6>
-// //                           <p className="mb-1 text-muted small">
-// //                             <FaClock className="me-1" />
-// //                             {formatDateTime(log.ngaygio)}
-// //                           </p>
-// //                           <p className="mb-1 text-muted small">
-// //                             <FaUser className="me-1" />
-// //                             {log.nguoithuchien.trim()}
-// //                           </p>
-// //                         </div>
-// //                         <Badge 
-// //                           bg={
-// //                             log.hanhdong === "LOGIN" ? "success" :
-// //                             log.hanhdong === "UPDATE" ? "info" :
-// //                             log.hanhdong.includes("KHUYENMAI") ? "warning" :
-// //                             "primary"
-// //                           }
-// //                           className="align-self-start"
-// //                         >
-// //                           {translateObjectType(log.doituong)}
-// //                         </Badge>
-// //                       </div>
-                      
-// //                       <div className="mt-2">
-// //                         {parseLogDetails(log)}
-// //                       </div>
-                      
-// //                       <Button 
-// //                         variant="outline-primary" 
-// //                         size="sm" 
-// //                         className="mt-2"
-// //                         onClick={() => openDetailModal(log)}
-// //                       >
-// //                         Xem chi tiết
-// //                       </Button>
-// //                     </Card.Body>
-// //                   </Card>
-// //                 ))}
-// //               </div>
-// //             ))}
-
-// //             {totalPages > 1 && (
-// //               <div className="mt-4 d-flex justify-content-center">
-// //                 <nav aria-label="Page navigation">
-// //                   <ul className="pagination">
-// //                     <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-// //                       <button 
-// //                         className="page-link" 
-// //                         onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-// //                       >
-// //                         &laquo;
-// //                       </button>
-// //                     </li>
-                    
-// //                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-// //                       let pageNum;
-// //                       if (totalPages <= 5) {
-// //                         pageNum = i + 1;
-// //                       } else if (currentPage <= 3) {
-// //                         pageNum = i + 1;
-// //                       } else if (currentPage >= totalPages - 2) {
-// //                         pageNum = totalPages - 4 + i;
-// //                       } else {
-// //                         pageNum = currentPage - 2 + i;
-// //                       }
-// //                       return (
-// //                         <li 
-// //                           key={pageNum} 
-// //                           className={`page-item ${currentPage === pageNum ? "active" : ""}`}
-// //                         >
-// //                           <button 
-// //                             className="page-link" 
-// //                             onClick={() => setCurrentPage(pageNum)}
-// //                           >
-// //                             {pageNum}
-// //                           </button>
-// //                         </li>
-// //                       );
-// //                     })}
-                    
-// //                     <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-// //                       <button 
-// //                         className="page-link" 
-// //                         onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-// //                       >
-// //                         &raquo;
-// //                       </button>
-// //                     </li>
-// //                   </ul>
-// //                 </nav>
-// //               </div>
-// //             )}
-// //           </>
-// //         )}
-// //       </div>
-
-// //       {/* Detail Modal */}
-// //       <Modal
-// //         show={showDetailModal}
-// //         onHide={() => setShowDetailModal(false)}
-// //         size="lg"
-// //       >
-// //         <Modal.Header closeButton>
-// //           <Modal.Title>Chi tiết lịch sử thao tác</Modal.Title>
-// //         </Modal.Header>
-// //         <Modal.Body>
-// //           {selectedLog && (
-// //             <div>
-// //               <ListGroup variant="flush">
-// //                 <ListGroup.Item>
-// //                   <FaClock className="me-2" />
-// //                   <strong>Thời gian:</strong> {formatDateTime(selectedLog.ngaygio)}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <FaUser className="me-2" />
-// //                   <strong>Người thực hiện:</strong> {selectedLog.nguoithuchien.trim()}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <FaTasks className="me-2" />
-// //                   <strong>Hành động:</strong> {translateAction(selectedLog.hanhdong)}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <strong>Đối tượng:</strong> {translateObjectType(selectedLog.doituong)}
-// //                 </ListGroup.Item>
-// //               </ListGroup>
-              
-// //               {selectedLog.hanhdong !== "LOGIN" && (
-// //                 <Row className="mt-3">
-// //                   <Col md={6}>
-// //                     <Card className="h-100">
-// //                       <Card.Header className="bg-light">
-// //                         <strong>Giá trị cũ</strong>
-// //                       </Card.Header>
-// //                       <Card.Body>
-// //                         <pre className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
-// //                           {selectedLog.giatriCu ? JSON.stringify(JSON.parse(selectedLog.giatriCu), null, 2) : "Không có"}
-// //                         </pre>
-// //                       </Card.Body>
-// //                     </Card>
-// //                   </Col>
-// //                   <Col md={6}>
-// //                     <Card className="h-100">
-// //                       <Card.Header className="bg-light">
-// //                         <strong>Giá trị mới</strong>
-// //                       </Card.Header>
-// //                       <Card.Body>
-// //                         <pre className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
-// //                           {selectedLog.giatriMoi ? JSON.stringify(JSON.parse(selectedLog.giatriMoi), null, 2) : "Không có"}
-// //                         </pre>
-// //                       </Card.Body>
-// //                     </Card>
-// //                   </Col>
-// //                 </Row>
-// //               )}
-// //             </div>
-// //           )}
-// //         </Modal.Body>
-// //         <Modal.Footer>
-// //           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-// //             Đóng
-// //           </Button>
-// //         </Modal.Footer>
-// //       </Modal>
-// //     </div>
-// //   );
-// // };
-
-// // export default LichSu;
-
-
-// //3
-// // import React, { useState, useEffect } from "react";
-// // import {
-// //   Modal,
-// //   Button,
-// //   Form,
-// //   Row,
-// //   Col,
-// //   Badge,
-// //   ListGroup,
-// //   Card,
-// //   Table,
-// // } from "react-bootstrap";
-// // import { 
-// //   FaHistory, 
-// //   FaUser, 
-// //   FaClock, 
-// //   FaTasks, 
-// //   FaSearch,
-// //   FaThLarge, 
-// //   FaTh, 
-// //   FaTable, 
-// //   FaCalendarAlt 
-// // } from "react-icons/fa";
-// // import {
-// //   fetchLog,
-// //   fetchLogByNhanVienId,
-// //   fetchNhanVien,
-// // } from "../services/apiService";
-
-// // const LichSu = () => {
-// //   const [logList, setLogList] = useState([]);
-// //   const [employeeList, setEmployeeList] = useState([]);
-// //   const [searchType, setSearchType] = useState("all");
-// //   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-// //   const [currentPage, setCurrentPage] = useState(1);
-// //   const [loading, setLoading] = useState(false);
-// //   const [error, setError] = useState(null);
-// //   const itemsPerPage = 10;
-
-// //   // Modal states
-// //   const [showDetailModal, setShowDetailModal] = useState(false);
-// //   const [selectedLog, setSelectedLog] = useState(null);
-
-// //   const [viewMode, setViewMode] = useState('cards'); // 'cards', 'table', 'timeline', 'calendar'
-
-// //   const token = localStorage.getItem("token");
-
-// //   // Fetch all logs
-// //   const loadAllLogs = async () => {
-// //     setLoading(true);
-// //     try {
-// //       const data = await fetchLog(token);
-// //       if (data.resultCode === 0) {
-// //         setLogList(data.data);
-// //         setError(null);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải danh sách lịch sử");
-// //       }
-// //     } catch (err) {
-// //       setError("Không thể tải danh sách lịch sử");
-// //       console.error("Error loading logs:", err);
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   // Fetch logs by employee ID
-// //   const loadLogsByMaNV = async (maNV) => {
-// //     setLoading(true);
-// //     try {
-// //       const data = await fetchLogByNhanVienId(token, maNV);
-// //       if (data.resultCode === 0) {
-// //         setLogList(data.data);
-// //         setError(null);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải lịch sử của nhân viên");
-// //       }
-// //     } catch (err) {
-// //       setError("Không thể tải lịch sử của nhân viên");
-// //       console.error("Error loading logs by MaNV:", err);
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   // Fetch all employees
-// //   const loadEmployees = async () => {
-// //     try {
-// //       const data = await fetchNhanVien(token);
-// //       if (data.resultCode === 0) {
-// //         setEmployeeList(data.data);
-// //       } else {
-// //         throw new Error(data.message || "Không thể tải danh sách nhân viên");
-// //       }
-// //     } catch (err) {
-// //       console.error("Error loading employees:", err);
-// //     }
-// //   };
-
-// //   // Handle search type change
-// //   const handleSearchTypeChange = (e) => {
-// //     const type = e.target.value;
-// //     setSearchType(type);
-// //     setSelectedEmployeeId("");
-// //     setCurrentPage(1);
-
-// //     if (type === "all") {
-// //       loadAllLogs();
-// //     }
-// //   };
-
-// //   // Handle employee selection change
-// //   const handleEmployeeChange = (e) => {
-// //     const maNV = e.target.value;
-// //     setSelectedEmployeeId(maNV);
-// //     setCurrentPage(1);
-
-// //     if (maNV) {
-// //       loadLogsByMaNV(maNV);
-// //     }
-// //   };
-
-// //   // Open detail modal
-// //   const openDetailModal = (log) => {
-// //     setSelectedLog(log);
-// //     setShowDetailModal(true);
-// //   };
-
-// //   // Load initial data on mount
-// //   useEffect(() => {
-// //     loadAllLogs();
-// //     loadEmployees();
-// //   }, []);
-
-// //   // Pagination
-// //   const totalPages = Math.ceil(logList.length / itemsPerPage);
-// //   const currentItems = logList.slice(
-// //     (currentPage - 1) * itemsPerPage,
-// //     currentPage * itemsPerPage
-// //   );
-
-// //   // Format datetime for display
-// //   const formatDateTime = (dateTimeString) => {
-// //     if (!dateTimeString) return "";
-// //     const [date, time] = dateTimeString.split(" ");
-// //     return `${time} ${date}`;
-// //   };
-
-// //   // Translate action to Vietnamese
-// //   const translateAction = (action) => {
-// //     switch (action) {
-// //       case "LOGIN":
-// //         return "Đăng nhập hệ thống";
-// //       case "UPDATE":
-// //         return "Cập nhật thông tin";
-// //       case "ADD_KHUYENMAI":
-// //         return "Áp dụng khuyến mãi";
-// //       case "REMOVE_KHUYENMAI":
-// //         return "Gỡ khuyến mãi";
-// //       default:
-// //         return action;
-// //     }
-// //   };
-
-// //   // Translate object type to Vietnamese
-// //   const translateObjectType = (type) => {
-// //     switch (type) {
-// //       case "SANPHAM":
-// //         return "Sản phẩm";
-// //       case "KHUYENMAI":
-// //         return "Chương trình khuyến mãi";
-// //       case "NHANVIEN":
-// //         return "Nhân viên";
-// //       default:
-// //         return type;
-// //     }
-// //   };
-
-// //   // Parse JSON values safely and format for display
-// //   const parseLogDetails = (log) => {
-// //     try {
-// //       const oldValue = log.giatriCu ? JSON.parse(log.giatriCu) : null;
-// //       const newValue = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
-
-// //       switch (log.doituong) {
-// //         case "SANPHAM":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Sản phẩm:</strong> {oldValue?.tensp || newValue?.tensp} (
-// //                 {oldValue?.id || newValue?.id})
-// //               </p>
-              
-// //               {log.hanhdong === "UPDATE" && (
-// //                 <>
-// //                   {oldValue?.imageurl !== newValue?.imageurl && (
-// //                     <p>- {newValue?.imageurl ? "Thêm ảnh sản phẩm" : "Xóa ảnh sản phẩm"}</p>
-// //                   )}
-// //                   {oldValue?.tensp !== newValue?.tensp && (
-// //                     <p>- Đổi tên sản phẩm: {oldValue?.tensp} → {newValue?.tensp}</p>
-// //                   )}
-// //                   {oldValue?.gia !== newValue?.gia && (
-// //                     <p>- Đổi giá: {oldValue?.gia} → {newValue?.gia}</p>
-// //                   )}
-// //                 </>
-// //               )}
-              
-// //               {log.hanhdong === "ADD_KHUYENMAI" && (
-// //                 <p>
-// //                   - Áp dụng khuyến mãi: {newValue?.makm?.noidung} (Giảm{" "}
-// //                   {newValue?.makm?.phantram}%)
-// //                 </p>
-// //               )}
-              
-// //               {log.hanhdong === "REMOVE_KHUYENMAI" && (
-// //                 <p>
-// //                   - Gỡ khuyến mãi: {oldValue?.makm?.noidung} (Giảm{" "}
-// //                   {oldValue?.makm?.phantram}%)
-// //                 </p>
-// //               )}
-// //             </div>
-// //           );
-          
-// //         case "KHUYENMAI":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Chương trình:</strong> {oldValue?.noidung || newValue?.noidung} (
-// //                 {oldValue?.id || newValue?.id})
-// //               </p>
-              
-// //               {oldValue?.phantram !== newValue?.phantram && (
-// //                 <p>- Thay đổi phần trăm giảm giá: {oldValue?.phantram}% → {newValue?.phantram}%</p>
-// //               )}
-              
-// //               {(oldValue?.ngaybd !== newValue?.ngaybd || oldValue?.ngaykt !== newValue?.ngaykt) && (
-// //                 <p>- Thay đổi thời gian áp dụng: {oldValue?.ngaybd} - {oldValue?.ngaykt} → {newValue?.ngaybd} - {newValue?.ngaykt}</p>
-// //               )}
-// //             </div>
-// //           );
-          
-// //         case "NHANVIEN":
-// //           return (
-// //             <div>
-// //               <p>
-// //                 <strong>Nhân viên:</strong> {oldValue?.hoten || newValue?.hoten} (
-// //                 {oldValue?.id || newValue?.id})
-// //               </p>
-// //             </div>
-// //           );
-          
-// //         default:
-// //           return null;
-// //       }
-// //     } catch (e) {
-// //       return null;
-// //     }
-// //   };
-
-// //   // Group logs by time and action for better display
-// //   const groupLogs = (logs) => {
-// //     const grouped = {};
-    
-// //     logs.forEach(log => {
-// //       const date = log.ngaygio.split(" ")[0];
-// //       if (!grouped[date]) {
-// //         grouped[date] = [];
-// //       }
-// //       grouped[date].push(log);
-// //     });
-    
-// //     return grouped;
-// //   };
-
-// //   // Card View Component
-// //   const CardView = ({ logs }) => {
-// //     const groupedLogs = groupLogs(logs);
-    
-// //     return (
-// //       <>
-// //         {Object.entries(groupedLogs).map(([date, logs]) => (
-// //           <div key={date} className="mb-4">
-// //             <h5 className="mb-3 text-primary">{date}</h5>
-            
-// //             {logs.map((log) => (
-// //               <Card key={log.id} className="mb-3 shadow-sm">
-// //                 <Card.Body>
-// //                   <div className="d-flex justify-content-between align-items-start">
-// //                     <div>
-// //                       <h6 className="mb-2">
-// //                         {translateAction(log.hanhdong)}
-// //                       </h6>
-// //                       <p className="mb-1 text-muted small">
-// //                         <FaClock className="me-1" />
-// //                         {formatDateTime(log.ngaygio)}
-// //                       </p>
-// //                       <p className="mb-1 text-muted small">
-// //                         <FaUser className="me-1" />
-// //                         {log.nguoithuchien.trim()}
-// //                       </p>
-// //                     </div>
-// //                     <Badge 
-// //                       bg={
-// //                         log.hanhdong === "LOGIN" ? "success" :
-// //                         log.hanhdong === "UPDATE" ? "info" :
-// //                         log.hanhdong.includes("KHUYENMAI") ? "warning" :
-// //                         "primary"
-// //                       }
-// //                       className="align-self-start"
-// //                     >
-// //                       {translateObjectType(log.doituong)}
-// //                     </Badge>
-// //                   </div>
-                  
-// //                   <div className="mt-2">
-// //                     {parseLogDetails(log)}
-// //                   </div>
-                  
-// //                   <Button 
-// //                     variant="outline-primary" 
-// //                     size="sm" 
-// //                     className="mt-2"
-// //                     onClick={() => openDetailModal(log)}
-// //                   >
-// //                     Xem chi tiết
-// //                   </Button>
-// //                 </Card.Body>
-// //               </Card>
-// //             ))}
-// //           </div>
-// //         ))}
-// //       </>
-// //     );
-// //   };
-
-// //   // Table View Component
-// //   const TableView = ({ logs }) => {
-// //     return (
-// //       <div className="table-responsive">
-// //         <Table hover>
-// //           <thead>
-// //             <tr>
-// //               <th>Thời gian</th>
-// //               <th>Hành động</th>
-// //               <th>Đối tượng</th>
-// //               <th>Người thực hiện</th>
-// //               <th>Chi tiết</th>
-// //             </tr>
-// //           </thead>
-// //           <tbody>
-// //             {logs.map(log => (
-// //               <tr key={log.id}>
-// //                 <td>{formatDateTime(log.ngaygio)}</td>
-// //                 <td>{translateAction(log.hanhdong)}</td>
-// //                 <td>{translateObjectType(log.doituong)}</td>
-// //                 <td>{log.nguoithuchien.trim()}</td>
-// //                 <td>
-// //                   <Button 
-// //                     variant="link" 
-// //                     size="sm"
-// //                     onClick={() => openDetailModal(log)}
-// //                   >
-// //                     Xem
-// //                   </Button>
-// //                 </td>
-// //               </tr>
-// //             ))}
-// //           </tbody>
-// //         </Table>
-// //       </div>
-// //     );
-// //   };
-
-// //   // Timeline View Component
-// //   const TimelineView = ({ logs }) => {
-// //     return (
-// //       <div className="timeline">
-// //         {logs.map((log, index) => (
-// //           <div key={log.id} className={`timeline-item ${index % 2 === 0 ? 'left' : 'right'}`}>
-// //             <div className="timeline-dot"></div>
-// //             <div className="timeline-content">
-// //               <div className="timeline-header">
-// //                 <span className="timeline-time">{formatDateTime(log.ngaygio)}</span>
-// //                 <span className="timeline-action">{translateAction(log.hanhdong)}</span>
-// //               </div>
-// //               <div className="timeline-body">
-// //                 {parseLogDetails(log)}
-// //               </div>
-// //               <div className="timeline-footer">
-// //                 <span className="badge bg-secondary">{translateObjectType(log.doituong)}</span>
-// //                 <span className="ms-2">{log.nguoithuchien.trim()}</span>
-// //               </div>
-// //             </div>
-// //           </div>
-// //         ))}
-// //       </div>
-// //     );
-// //   };
-
-// //   // Calendar View Component
-// //   const CalendarView = ({ logs }) => {
-// //     const groupedByDate = groupLogs(logs);
-
-// //     return (
-// //       <div className="calendar-view">
-// //         {Object.entries(groupedByDate).map(([date, dateLogs]) => (
-// //           <div key={date} className="calendar-day">
-// //             <div className="calendar-date-header">
-// //               <h5>{date}</h5>
-// //             </div>
-// //             <div className="calendar-events">
-// //               {dateLogs.map(log => (
-// //                 <div key={log.id} className="calendar-event">
-// //                   <div className="event-time">
-// //                     {log.ngaygio.split(' ')[1]}
-// //                   </div>
-// //                   <div className="event-content">
-// //                     <div className="event-title">
-// //                       {translateAction(log.hanhdong)}
-// //                     </div>
-// //                     <div className="event-details">
-// //                       {parseLogDetails(log)}
-// //                     </div>
-// //                     <div className="event-meta">
-// //                       <span className="badge bg-secondary me-2">
-// //                         {translateObjectType(log.doituong)}
-// //                       </span>
-// //                       <span>{log.nguoithuchien.trim()}</span>
-// //                     </div>
-// //                   </div>
-// //                 </div>
-// //               ))}
-// //             </div>
-// //           </div>
-// //         ))}
-// //       </div>
-// //     );
-// //   };
-
-// //   // Render the appropriate view based on viewMode
-// //   const renderView = () => {
-// //     switch(viewMode) {
-// //       case 'table':
-// //         return <TableView logs={currentItems} />;
-// //       case 'timeline':
-// //         return <TimelineView logs={currentItems} />;
-// //       case 'calendar':
-// //         return <CalendarView logs={currentItems} />;
-// //       default:
-// //         return <CardView logs={currentItems} />;
-// //     }
-// //   };
-
-// //   return (
-// //     <div className="container-fluid p-0 position-relative d-flex flex-column min-vh-100">
-// //       <div className="p-4 flex-grow-1">
-// //         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-// //           <h1 className="h3 mb-3 mb-md-0">Lịch sử thao tác</h1>
-// //           <div className="d-flex gap-2 align-items-center">
-            
-// //             {/* View mode selector */}
-// //             <div className="btn-group" role="group">
-// //               <Button 
-// //                 variant={viewMode === 'cards' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('cards')}
-// //                 title="Thẻ"
-// //               >
-// //                 <FaThLarge />
-// //               </Button>
-// //               <Button 
-// //                 variant={viewMode === 'table' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('table')}
-// //                 title="Bảng"
-// //               >
-// //                 <FaTable />
-// //               </Button>
-// //               <Button 
-// //                 variant={viewMode === 'timeline' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('timeline')}
-// //                 title="Dòng thời gian"
-// //               >
-// //                 <FaHistory />
-// //               </Button>
-// //               <Button 
-// //                 variant={viewMode === 'calendar' ? 'primary' : 'outline-secondary'} 
-// //                 size="sm"
-// //                 onClick={() => setViewMode('calendar')}
-// //                 title="Lịch"
-// //               >
-// //                 <FaCalendarAlt />
-// //               </Button>
-// //             </div>
-            
-// //             <Form.Select
-// //               value={searchType}
-// //               onChange={handleSearchTypeChange}
-// //               style={{ width: "200px" }}
-// //             >
-// //               <option value="all">Tất cả</option>
-// //               <option value="employee">Theo nhân viên</option>
-// //             </Form.Select>
-
-// //             {searchType === "employee" && (
-// //               <Form.Select
-// //                 value={selectedEmployeeId}
-// //                 onChange={handleEmployeeChange}
-// //                 style={{ width: "250px" }}
-// //               >
-// //                 <option value="">Chọn nhân viên...</option>
-// //                 {employeeList.map((employee) => (
-// //                   <option key={employee.id} value={employee.id}>
-// //                     {employee.hoten} ({employee.id.trim()})
-// //                   </option>
-// //                 ))}
-// //               </Form.Select>
-// //             )}
-// //           </div>
-// //         </div>
-
-// //         {loading && (
-// //           <div className="text-center py-4">
-// //             <div className="spinner-border text-primary" role="status">
-// //               <span className="visually-hidden">Loading...</span>
-// //             </div>
-// //           </div>
-// //         )}
-
-// //         {error && <div className="alert alert-danger">{error}</div>}
-
-// //         {searchType === "employee" && !selectedEmployeeId ? (
-// //           <div className="text-center py-4 text-muted">
-// //             <FaSearch className="me-2" />
-// //             Vui lòng chọn nhân viên để xem lịch sử
-// //           </div>
-// //         ) : searchType === "employee" && currentItems.length === 0 ? (
-// //           <div className="text-center py-4 text-muted">
-// //             Nhân viên này không có lịch sử thao tác
-// //           </div>
-// //         ) : currentItems.length === 0 ? (
-// //           <div className="text-center py-4 text-muted">
-// //             Không tìm thấy lịch sử thao tác nào
-// //           </div>
-// //         ) : (
-// //           <>
-// //             {renderView()}
-
-// //             {totalPages > 1 && (
-// //               <div className="mt-4 d-flex justify-content-center">
-// //                 <nav aria-label="Page navigation">
-// //                   <ul className="pagination">
-// //                     <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-// //                       <button 
-// //                         className="page-link" 
-// //                         onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-// //                       >
-// //                         &laquo;
-// //                       </button>
-// //                     </li>
-                    
-// //                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-// //                       let pageNum;
-// //                       if (totalPages <= 5) {
-// //                         pageNum = i + 1;
-// //                       } else if (currentPage <= 3) {
-// //                         pageNum = i + 1;
-// //                       } else if (currentPage >= totalPages - 2) {
-// //                         pageNum = totalPages - 4 + i;
-// //                       } else {
-// //                         pageNum = currentPage - 2 + i;
-// //                       }
-// //                       return (
-// //                         <li 
-// //                           key={pageNum} 
-// //                           className={`page-item ${currentPage === pageNum ? "active" : ""}`}
-// //                         >
-// //                           <button 
-// //                             className="page-link" 
-// //                             onClick={() => setCurrentPage(pageNum)}
-// //                           >
-// //                             {pageNum}
-// //                           </button>
-// //                         </li>
-// //                       );
-// //                     })}
-                    
-// //                     <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-// //                       <button 
-// //                         className="page-link" 
-// //                         onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-// //                       >
-// //                         &raquo;
-// //                       </button>
-// //                     </li>
-// //                   </ul>
-// //                 </nav>
-// //               </div>
-// //             )}
-// //           </>
-// //         )}
-// //       </div>
-
-// //       {/* Detail Modal */}
-// //       <Modal
-// //         show={showDetailModal}
-// //         onHide={() => setShowDetailModal(false)}
-// //         size="lg"
-// //       >
-// //         <Modal.Header closeButton>
-// //           <Modal.Title>Chi tiết lịch sử thao tác</Modal.Title>
-// //         </Modal.Header>
-// //         <Modal.Body>
-// //           {selectedLog && (
-// //             <div>
-// //               <ListGroup variant="flush">
-// //                 <ListGroup.Item>
-// //                   <FaClock className="me-2" />
-// //                   <strong>Thời gian:</strong> {formatDateTime(selectedLog.ngaygio)}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <FaUser className="me-2" />
-// //                   <strong>Người thực hiện:</strong> {selectedLog.nguoithuchien.trim()}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <FaTasks className="me-2" />
-// //                   <strong>Hành động:</strong> {translateAction(selectedLog.hanhdong)}
-// //                 </ListGroup.Item>
-// //                 <ListGroup.Item>
-// //                   <strong>Đối tượng:</strong> {translateObjectType(selectedLog.doituong)}
-// //                 </ListGroup.Item>
-// //               </ListGroup>
-              
-// //               {selectedLog.hanhdong !== "LOGIN" && (
-// //                 <Row className="mt-3">
-// //                   <Col md={6}>
-// //                     <Card className="h-100">
-// //                       <Card.Header className="bg-light">
-// //                         <strong>Giá trị cũ</strong>
-// //                       </Card.Header>
-// //                       <Card.Body>
-// //                         <pre className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
-// //                           {selectedLog.giatriCu ? JSON.stringify(JSON.parse(selectedLog.giatriCu), null, 2) : "Không có"}
-// //                         </pre>
-// //                       </Card.Body>
-// //                     </Card>
-// //                   </Col>
-// //                   <Col md={6}>
-// //                     <Card className="h-100">
-// //                       <Card.Header className="bg-light">
-// //                         <strong>Giá trị mới</strong>
-// //                       </Card.Header>
-// //                       <Card.Body>
-// //                         <pre className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
-// //                           {selectedLog.giatriMoi ? JSON.stringify(JSON.parse(selectedLog.giatriMoi), null, 2) : "Không có"}
-// //                         </pre>
-// //                       </Card.Body>
-// //                     </Card>
-// //                   </Col>
-// //                 </Row>
-// //               )}
-// //             </div>
-// //           )}
-// //         </Modal.Body>
-// //         <Modal.Footer>
-// //           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-// //             Đóng
-// //           </Button>
-// //         </Modal.Footer>
-// //       </Modal>
-// //     </div>
-// //   );
-// // };
-
-// // export default LichSu;
-
-
-// import React, { useState, useEffect } from "react";
-// import {
-//   Modal,
-//   Button,
-//   Form,
-//   Row,
-//   Col,
-//   Badge,
-//   ListGroup,
-//   Card,
-//   Table,
-// } from "react-bootstrap";
-// import {
-//   FaHistory,
-//   FaUser,
-//   FaClock,
-//   FaTasks,
-//   FaSearch,
-//   FaThLarge,
-//   FaTh,
-//   FaTable,
-//   FaCalendarAlt,
-//   FaList,
-// } from "react-icons/fa";
-// import { fetchLog, fetchLogByNhanVienId, fetchNhanVien } from "../services/apiService";
-
-// const styles = `
-//   .lichsu-container {
-//     font-family: 'Roboto', sans-serif;
-//   }
-//   .view-mode-btn {
-//     transition: all 0.2s ease;
-//   }
-//   .view-mode-btn.active {
-//     background-color: #007bff !important;
-//     color: white !important;
-//   }
-//   .card-log {
-//     border-radius: 8px;
-//     transition: transform 0.2s ease, box-shadow 0.2s ease;
-//   }
-//   .card-log:hover {
-//     transform: translateY(-4px);
-//     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-//   }
-//   .card-log .card-body {
-//     padding: 1.5rem;
-//   }
-//   .table-log th, .table-log td {
-//     vertical-align: middle;
-//     padding: 1rem;
-//   }
-//   .table-log tr:hover {
-//     background-color: #f8f9fa;
-//   }
-//   .timeline {
-//     position: relative;
-//     padding: 20px 0;
-//   }
-//   .timeline-item {
-//     position: relative;
-//     margin-bottom: 2rem;
-//   }
-//   .timeline-item.left .timeline-content {
-//     margin-left: 30px;
-//   }
-//   .timeline-item.right .timeline-content {
-//     margin-right: 30px;
-//   }
-//   .timeline-dot {
-//     width: 12px;
-//     height: 12px;
-//     background-color: #007bff;
-//     border-radius: 50%;
-//     position: absolute;
-//     top: 10px;
-//     left: 50%;
-//     transform: translateX(-50%);
-//   }
-//   .timeline-content {
-//     background: #fff;
-//     padding: 1.5rem;
-//     border-radius: 8px;
-//     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-//     width: 45%;
-//   }
-//   .timeline-header {
-//     display: flex;
-//     justify-content: space-between;
-//     margin-bottom: 0.5rem;
-//   }
-//   .timeline-action {
-//     font-weight: bold;
-//     color: #007bff;
-//   }
-//   .calendar-day {
-//     margin-bottom: 2rem;
-//   }
-//   .calendar-date-header {
-//     background: #007bff;
-//     color: white;
-//     padding: 0.5rem 1rem;
-//     border-radius: 4px;
-//     margin-bottom: 1rem;
-//   }
-//   .calendar-event {
-//     display: flex;
-//     margin-bottom: 1rem;
-//     background: #f8f9fa;
-//     border-radius: 4px;
-//     padding: 1rem;
-//   }
-//   .event-time {
-//     width: 80px;
-//     font-weight: bold;
-//     color: #495057;
-//   }
-//   .event-content {
-//     flex: 1;
-//   }
-//   .event-title {
-//     font-weight: bold;
-//     color: #007bff;
-//   }
-//   .grid-view {
-//     display: grid;
-//     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-//     gap: 1rem;
-//   }
-//   .grid-item {
-//     background: #fff;
-//     border-radius: 8px;
-//     padding: 1rem;
-//     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-//     transition: transform 0.2s ease;
-//   }
-//   .grid-item:hover {
-//     transform: translateY(-4px);
-//   }
-//   .list-view {
-//     display: flex;
-//     flex-direction: column;
-//     gap: 1rem;
-//   }
-//   .list-item {
-//     background: #fff;
-//     border-radius: 8px;
-//     padding: 1rem;
-//     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-//     display: flex;
-//     align-items: center;
-//     gap: 1rem;
-//   }
-//   .list-icon {
-//     font-size: 1.5rem;
-//     color: #007bff;
-//   }
-//   .detail-modal pre {
-//     background: #f8f9fa;
-//     padding: 1rem;
-//     border-radius: 4px;
-//     font-size: 0.9rem;
-//   }
-//   .detail-modal .card {
-//     border: none;
-//     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-//   }
-//   @media (max-width: 768px) {
-//     .timeline-content {
-//       width: 100%;
-//       margin: 0 !important;
-//     }
-//     .timeline-dot {
-//       left: 20px;
-//     }
-//     .grid-view {
-//       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-//     }
-//   }
-// `;
-
-// const LichSu = () => {
-//   const [logList, setLogList] = useState([]);
-//   const [employeeList, setEmployeeList] = useState([]);
-//   const [searchType, setSearchType] = useState("all");
-//   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-//   const itemsPerPage = 10;
-//   const [showDetailModal, setShowDetailModal] = useState(false);
-//   const [selectedLog, setSelectedLog] = useState(null);
-//   const [viewMode, setViewMode] = useState("cards"); // 'cards', 'table', 'timeline', 'calendar', 'grid', 'list'
-
-//   const token = localStorage.getItem("token");
-
-//   const loadAllLogs = async () => {
-//     setLoading(true);
-//     try {
-//       const data = await fetchLog(token);
-//       if (data.resultCode === 0) {
-//         setLogList(data.data);
-//         setError(null);
-//       } else {
-//         throw new Error(data.message || "Không thể tải danh sách lịch sử");
-//       }
-//     } catch (err) {
-//       setError("Không thể tải danh sách lịch sử");
-//       console.error("Error loading logs:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const loadLogsByMaNV = async (maNV) => {
-//     setLoading(true);
-//     try {
-//       const data = await fetchLogByNhanVienId(token, maNV);
-//       if (data.resultCode === 0) {
-//         setLogList(data.data);
-//         setError(null);
-//       } else {
-//         throw new Error(data.message || "Không thể tải lịch sử của nhân viên");
-//       }
-//     } catch (err) {
-//       setError("Không thể tải lịch sử của nhân viên");
-//       console.error("Error loading logs by MaNV:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const loadEmployees = async () => {
-//     try {
-//       const data = await fetchNhanVien(token);
-//       if (data.resultCode === 0) {
-//         setEmployeeList(data.data);
-//       } else {
-//         throw new Error(data.message || "Không thể tải danh sách nhân viên");
-//       }
-//     } catch (err) {
-//       console.error("Error loading employees:", err);
-//     }
-//   };
-
-//   const handleSearchTypeChange = (e) => {
-//     const type = e.target.value;
-//     setSearchType(type);
-//     setSelectedEmployeeId("");
-//     setCurrentPage(1);
-//     if (type === "all") {
-//       loadAllLogs();
-//     }
-//   };
-
-//   const handleEmployeeChange = (e) => {
-//     const maNV = e.target.value;
-//     setSelectedEmployeeId(maNV);
-//     setCurrentPage(1);
-//     if (maNV) {
-//       loadLogsByMaNV(maNV);
-//     }
-//   };
-
-//   const openDetailModal = (log) => {
-//     setSelectedLog(log);
-//     setShowDetailModal(true);
-//   };
-
-//   useEffect(() => {
-//     loadAllLogs();
-//     loadEmployees();
-//   }, []);
-
-//   const totalPages = Math.ceil(logList.length / itemsPerPage);
-//   const currentItems = logList.slice(
-//     (currentPage - 1) * itemsPerPage,
-//     currentPage * itemsPerPage
-//   );
-
-//   const formatDateTime = (dateTimeString) => {
-//     if (!dateTimeString) return "";
-//     const [date, time] = dateTimeString.split(" ");
-//     return `${time} ${date}`;
-//   };
-
-//   const translateAction = (action) => {
-//     switch (action) {
-//       case "LOGIN": return "Đăng nhập hệ thống";
-//       case "UPDATE": return "Cập nhật thông tin";
-//       case "ADD_KHUYENMAI": return "Áp dụng khuyến mãi";
-//       case "REMOVE_KHUYENMAI": return "Gỡ khuyến mãi";
-//       default: return action;
-//     }
-//   };
-
-//   const translateObjectType = (type) => {
-//     switch (type) {
-//       case "SANPHAM": return "Sản phẩm";
-//       case "KHUYENMAI": return "Chương trình khuyến mãi";
-//       case "NHANVIEN": return "Nhân viên";
-//       default: return type;
-//     }
-//   };
-
-//   const parseLogDetails = (log) => {
-//     try {
-//       const oldValue = log.giatriCu ? JSON.parse(log.giatriCu) : null;
-//       const newValue = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
-//       switch (log.doituong) {
-//         case "SANPHAM":
-//           return (
-//             <div>
-//               <p><strong>Sản phẩm:</strong> {oldValue?.tensp || newValue?.tensp} ({oldValue?.id || newValue?.id})</p>
-//               {log.hanhdong === "UPDATE" && (
-//                 <>
-//                   {oldValue?.imageurl !== newValue?.imageurl && (
-//                     <p>- {newValue?.imageurl ? "Thêm ảnh sản phẩm" : "Xóa ảnh sản phẩm"}</p>
-//                   )}
-//                   {oldValue?.tensp !== newValue?.tensp && (
-//                     <p>- Đổi tên sản phẩm: {oldValue?.tensp} → {newValue?.tensp}</p>
-//                   )}
-//                   {oldValue?.gia !== newValue?.gia && (
-//                     <p>- Đổi giá: {oldValue?.gia} → {newValue?.gia}</p>
-//                   )}
-//                 </>
-//               )}
-//               {log.hanhdong === "ADD_KHUYENMAI" && (
-//                 <p>- Áp dụng khuyến mãi: {newValue?.makm?.noidung} (Giảm {newValue?.makm?.phantram}%)</p>
-//               )}
-//               {log.hanhdong === "REMOVE_KHUYENMAI" && (
-//                 <p>- Gỡ khuyến mãi: {oldValue?.makm?.noidung} (Giảm {oldValue?.makm?.phantram}%)</p>
-//               )}
-//             </div>
-//           );
-//         case "KHUYENMAI":
-//           return (
-//             <div>
-//               <p><strong>Chương trình:</strong> {oldValue?.noidung || newValue?.noidung} ({oldValue?.id || newValue?.id})</p>
-//               {oldValue?.phantram !== newValue?.phantram && (
-//                 <p>- Thay đổi phần trăm giảm giá: {oldValue?.phantram}% → {newValue?.phantram}%</p>
-//               )}
-//               {(oldValue?.ngaybd !== newValue?.ngaybd || oldValue?.ngaykt !== newValue?.ngaykt) && (
-//                 <p>- Thay đổi thời gian áp dụng: {oldValue?.ngaybd} - {oldValue?.ngaykt} → {newValue?.ngaybd} - {newValue?.ngaykt}</p>
-//               )}
-//             </div>
-//           );
-//         case "NHANVIEN":
-//           return (
-//             <div>
-//               <p><strong>Nhân viên:</strong> {oldValue?.hoten || newValue?.hoten} ({oldValue?.id || newValue?.id})</p>
-//             </div>
-//           );
-//         default:
-//           return null;
-//       }
-//     } catch (e) {
-//       return null;
-//     }
-//   };
-
-//   const groupLogs = (logs) => {
-//     const grouped = {};
-//     logs.forEach((log) => {
-//       const date = log.ngaygio.split(" ")[0];
-//       if (!grouped[date]) {
-//         grouped[date] = [];
-//       }
-//       grouped[date].push(log);
-//     });
-//     return grouped;
-//   };
-
-//   const CardView = ({ logs }) => {
-//     const groupedLogs = groupLogs(logs);
-//     return (
-//       <>
-//         {Object.entries(groupedLogs).map(([date, logs]) => (
-//           <div key={date} className="mb-4">
-//             <h5 className="mb-3 text-primary">{date}</h5>
-//             {logs.map((log) => (
-//               <Card key={log.id} className="mb-3 shadow-sm card-log">
-//                 <Card.Body>
-//                   <div className="d-flex justify-content-between align-items-start">
-//                     <div>
-//                       <h6 className="mb-2">{translateAction(log.hanhdong)}</h6>
-//                       <p className="mb-1 text-muted small">
-//                         <FaClock className="me-1" />
-//                         {formatDateTime(log.ngaygio)}
-//                       </p>
-//                       <p className="mb-1 text-muted small">
-//                         <FaUser className="me-1" />
-//                         {log.nguoithuchien.trim()}
-//                       </p>
-//                     </div>
-//                     <Badge
-//                       bg={
-//                         log.hanhdong === "LOGIN"
-//                           ? "success"
-//                           : log.hanhdong === "UPDATE"
-//                           ? "info"
-//                           : log.hanhdong.includes("KHUYENMAI")
-//                           ? "warning"
-//                           : "primary"
-//                       }
-//                       className="align-self-start"
-//                     >
-//                       {translateObjectType(log.doituong)}
-//                     </Badge>
-//                   </div>
-//                   <div className="mt-2">{parseLogDetails(log)}</div>
-//                   <Button
-//                     variant="outline-primary"
-//                     size="sm"
-//                     className="mt-2"
-//                     onClick={() => openDetailModal(log)}
-//                   >
-//                     Xem chi tiết
-//                   </Button>
-//                 </Card.Body>
-//               </Card>
-//             ))}
-//           </div>
-//         ))}
-//       </>
-//     );
-//   };
-
-//   const TableView = ({ logs }) => {
-//     return (
-//       <div className="table-responsive">
-//         <Table hover className="table-log">
-//           <thead>
-//             <tr>
-//               <th>Thời gian</th>
-//               <th>Hành động</th>
-//               <th>Đối tượng</th>
-//               <th>Người thực hiện</th>
-//               <th>Chi tiết</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {logs.map((log) => (
-//               <tr key={log.id}>
-//                 <td>{formatDateTime(log.ngaygio)}</td>
-//                 <td>{translateAction(log.hanhdong)}</td>
-//                 <td>{translateObjectType(log.doituong)}</td>
-//                 <td>{log.nguoithuchien.trim()}</td>
-//                 <td>
-//                   <Button
-//                     variant="link"
-//                     size="sm"
-//                     onClick={() => openDetailModal(log)}
-//                   >
-//                     Xem
-//                   </Button>
-//                 </td>
-//               </tr>
-//             ))}
-//           </tbody>
-//         </Table>
-//       </div>
-//     );
-//   };
-
-//   const TimelineView = ({ logs }) => {
-//     return (
-//       <div className="timeline">
-//         {logs.map((log, index) => (
-//           <div
-//             key={log.id}
-//             className={`timeline-item ${index % 2 === 0 ? "left" : "right"}`}
-//           >
-//             <div className="timeline-dot"></div>
-//             <div className="timeline-content">
-//               <div className="timeline-header">
-//                 <span className="timeline-time">{formatDateTime(log.ngaygio)}</span>
-//                 <span className="timeline-action">{translateAction(log.hanhdong)}</span>
-//               </div>
-//               <div className="timeline-body">{parseLogDetails(log)}</div>
-//               <div className="timeline-footer">
-//                 <Badge
-//                   bg={
-//                     log.hanhdong === "LOGIN"
-//                       ? "success"
-//                       : log.hanhdong === "UPDATE"
-//                       ? "info"
-//                       : log.hanhdong.includes("KHUYENMAI")
-//                       ? "warning"
-//                       : "primary"
-//                   }
-//                 >
-//                   {translateObjectType(log.doituong)}
-//                 </Badge>
-//                 <span className="ms-2">{log.nguoithuchien.trim()}</span>
-//                 <Button
-//                   variant="link"
-//                   size="sm"
-//                   className="ms-2"
-//                   onClick={() => openDetailModal(log)}
-//                 >
-//                   Xem chi tiết
-//                 </Button>
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     );
-//   };
-
-//   const CalendarView = ({ logs }) => {
-//     const groupedByDate = groupLogs(logs);
-//     return (
-//       <div className="calendar-view">
-//         {Object.entries(groupedByDate).map(([date, dateLogs]) => (
-//           <div key={date} className="calendar-day">
-//             <div className="calendar-date-header">
-//               <h5>{date}</h5>
-//             </div>
-//             <div className="calendar-events">
-//               {dateLogs.map((log) => (
-//                 <div key={log.id} className="calendar-event">
-//                   <div className="event-time">{log.ngaygio.split(" ")[1]}</div>
-//                   <div className="event-content">
-//                     <div className="event-title">{translateAction(log.hanhdong)}</div>
-//                     <div className="event-details">{parseLogDetails(log)}</div>
-//                     <div className="event-meta">
-//                       <Badge
-//                         bg={
-//                           log.hanhdong === "LOGIN"
-//                             ? "success"
-//                             : log.hanhdong === "UPDATE"
-//                             ? "info"
-//                             : log.hanhdong.includes("KHUYENMAI")
-//                             ? "warning"
-//                             : "primary"
-//                         }
-//                         className="me-2"
-//                       >
-//                         {translateObjectType(log.doituong)}
-//                       </Badge>
-//                       <span>{log.nguoithuchien.trim()}</span>
-//                       <Button
-//                         variant="link"
-//                         size="sm"
-//                         className="ms-2"
-//                         onClick={() => openDetailModal(log)}
-//                       >
-//                         Xem chi tiết
-//                       </Button>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//     );
-//   };
-
-//   const GridView = ({ logs }) => {
-//     return (
-//       <div className="grid-view">
-//         {logs.map((log) => (
-//           <div key={log.id} className="grid-item">
-//             <h6 className="mb-2">{translateAction(log.hanhdong)}</h6>
-//             <p className="mb-1 text-muted small">
-//               <FaClock className="me-1" />
-//               {formatDateTime(log.ngaygio)}
-//             </p>
-//             <p className="mb-1 text-muted small">
-//               <FaUser className="me-1" />
-//               {log.nguoithuchien.trim()}
-//             </p>
-//             <Badge
-//               bg={
-//                 log.hanhdong === "LOGIN"
-//                   ? "success"
-//                   : log.hanhdong === "UPDATE"
-//                   ? "info"
-//                   : log.hanhdong.includes("KHUYENMAI")
-//                   ? "warning"
-//                   : "primary"
-//               }
-//               className="mb-2"
-//             >
-//               {translateObjectType(log.doituong)}
-//             </Badge>
-//             <div>{parseLogDetails(log)}</div>
-//             <Button
-//               variant="outline-primary"
-//               size="sm"
-//               className="mt-2"
-//               onClick={() => openDetailModal(log)}
-//             >
-//               Xem chi tiết
-//             </Button>
-//           </div>
-//         ))}
-//       </div>
-//     );
-//   };
-
-//   const ListView = ({ logs }) => {
-//     return (
-//       <div className="list-view">
-//         {logs.map((log) => (
-//           <div key={log.id} className="list-item">
-//             <FaTasks className="list-icon" />
-//             <div className="flex-grow-1">
-//               <div className="d-flex justify-content-between">
-//                 <strong>{translateAction(log.hanhdong)}</strong>
-//                 <span className="text-muted small">{formatDateTime(log.ngaygio)}</span>
-//               </div>
-//               <p className="mb-1 text-muted small">
-//                 <FaUser className="me-1" />
-//                 {log.nguoithuchien.trim()}
-//               </p>
-//               <Badge
-//                 bg={
-//                   log.hanhdong === "LOGIN"
-//                     ? "success"
-//                     : log.hanhdong === "UPDATE"
-//                     ? "info"
-//                     : log.hanhdong.includes("KHUYENMAI")
-//                     ? "warning"
-//                     : "primary"
-//                 }
-//               >
-//                 {translateObjectType(log.doituong)}
-//               </Badge>
-//               <div>{parseLogDetails(log)}</div>
-//             </div>
-//             <Button
-//               variant="outline-primary"
-//               size="sm"
-//               onClick={() => openDetailModal(log)}
-//             >
-//               Xem
-//             </Button>
-//           </div>
-//         ))}
-//       </div>
-//     );
-//   };
-
-//   const renderView = () => {
-//     switch (viewMode) {
-//       case "table":
-//         return <TableView logs={currentItems} />;
-//       case "timeline":
-//         return <TimelineView logs={currentItems} />;
-//       case "calendar":
-//         return <CalendarView logs={currentItems} />;
-//       case "grid":
-//         return <GridView logs={currentItems} />;
-//       case "list":
-//         return <ListView logs={currentItems} />;
-//       default:
-//         return <CardView logs={currentItems} />;
-//     }
-//   };
-
-//   return (
-//     <div className="container-fluid p-0 position-relative d-flex flex-column min-vh-100 lichsu-container">
-//       <style>{styles}</style>
-//       <div className="p-4 flex-grow-1">
-//         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-//           <h1 className="h3 mb-3 mb-md-0">Lịch sử thao tác</h1>
-//           <div className="d-flex gap-2 align-items-center">
-//             <div className="btn-group" role="group">
-//               <Button
-//                 variant={viewMode === "cards" ? "primary" : "outline-secondary"}
-//                 size="sm"
-//                 onClick={() => setViewMode("cards")}
-//                 title="Thẻ"
-//                 className="view-mode-btn"
-//               >
-//                 <FaThLarge />
-//               </Button>
-//               <Button
-//                 variant={viewMode === "table" ? "primary" : "outline-secondary"}
-//                 size="sm"
-//                 onClick={() => setViewMode("table")}
-//                 title="Bảng"
-//                 className="view-mode-btn"
-//               >
-//                 <FaTable />
-//               </Button>
-//               <Button
-//                 variant={viewMode === "timeline" ? "primary" : "outline-secondary"}
-//                 size="sm"
-//                 onClick={() => setViewMode("timeline")}
-//                 title="Dòng thời gian"
-//                 className="view-mode-btn"
-//               >
-//                 <FaHistory />
-//               </Button>
-//               <Button
-//                 variant={viewMode === "calendar" ? "primary" : "outline-secondary"}
-//                 size="sm"
-//                 onClick={() => setViewMode("calendar")}
-//                 title="Lịch"
-//                 className="view-mode-btn"
-//               >
-//                 <FaCalendarAlt />
-//               </Button>
-//               <Button
-//                 variant={viewMode === "grid" ? "primary" : "outline-secondary"}
-//                 size="sm"
-//                 onClick={() => setViewMode("grid")}
-//                 title="Lưới"
-//                 className="view-mode-btn"
-//               >
-//                 <FaTh />
-//               </Button>
-//               <Button
-//                 variant={viewMode === "list" ? "primary" : "outline-secondary"}
-//                 size="sm"
-//                 onClick={() => setViewMode("list")}
-//                 title="Danh sách"
-//                 className="view-mode-btn"
-//               >
-//                 <FaList />
-//               </Button>
-//             </div>
-//             <Form.Select
-//               value={searchType}
-//               onChange={handleSearchTypeChange}
-//               style={{ width: "200px" }}
-//             >
-//               <option value="all">Tất cả</option>
-//               <option value="employee">Theo nhân viên</option>
-//             </Form.Select>
-//             {searchType === "employee" && (
-//               <Form.Select
-//                 value={selectedEmployeeId}
-//                 onChange={handleEmployeeChange}
-//                 style={{ width: "250px" }}
-//               >
-//                 <option value="">Chọn nhân viên...</option>
-//                 {employeeList.map((employee) => (
-//                   <option key={employee.id} value={employee.id}>
-//                     {employee.hoten} ({employee.id.trim()})
-//                   </option>
-//                 ))}
-//               </Form.Select>
-//             )}
-//           </div>
-//         </div>
-//         {loading && (
-//           <div className="text-center py-4">
-//             <div className="spinner-border text-primary" role="status">
-//               <span className="visually-hidden">Loading...</span>
-//             </div>
-//           </div>
-//         )}
-//         {error && <div className="alert alert-danger">{error}</div>}
-//         {searchType === "employee" && !selectedEmployeeId ? (
-//           <div className="text-center py-4 text-muted">
-//             <FaSearch className="me-2" />
-//             Vui lòng chọn nhân viên để xem lịch sử
-//           </div>
-//         ) : searchType === "employee" && currentItems.length === 0 ? (
-//           <div className="text-center py-4 text-muted">
-//             Nhân viên này không có lịch sử thao tác
-//           </div>
-//         ) : currentItems.length === 0 ? (
-//           <div className="text-center py-4 text-muted">
-//             Không tìm thấy lịch sử thao tác nào
-//           </div>
-//         ) : (
-//           <>
-//             {renderView()}
-//             {totalPages > 1 && (
-//               <div className="mt-4 d-flex justify-content-center">
-//                 <nav aria-label="Page navigation">
-//                   <ul className="pagination">
-//                     <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-//                       <button
-//                         className="page-link"
-//                         onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-//                       >
-//                         «
-//                       </button>
-//                     </li>
-//                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-//                       let pageNum;
-//                       if (totalPages <= 5) {
-//                         pageNum = i + 1;
-//                       } else if (currentPage <= 3) {
-//                         pageNum = i + 1;
-//                       } else if (currentPage >= totalPages - 2) {
-//                         pageNum = totalPages - 4 + i;
-//                       } else {
-//                         pageNum = currentPage - 2 + i;
-//                       }
-//                       return (
-//                         <li
-//                           key={pageNum}
-//                           className={`page-item ${currentPage === pageNum ? "active" : ""}`}
-//                         >
-//                           <button
-//                             className="page-link"
-//                             onClick={() => setCurrentPage(pageNum)}
-//                           >
-//                             {pageNum}
-//                           </button>
-//                         </li>
-//                       );
-//                     })}
-//                     <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-//                       <button
-//                         className="page-link"
-//                         onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-//                       >
-//                         »
-//                       </button>
-//                     </li>
-//                   </ul>
-//                 </nav>
-//               </div>
-//             )}
-//           </>
-//         )}
-//       </div>
-//       <Modal
-//         show={showDetailModal}
-//         onHide={() => setShowDetailModal(false)}
-//         size="lg"
-//         className="detail-modal"
-//       >
-//         <Modal.Header closeButton>
-//           <Modal.Title>Chi tiết lịch sử thao tác</Modal.Title>
-//         </Modal.Header>
-//         <Modal.Body>
-//           {selectedLog && (
-//             <div>
-//               <ListGroup variant="flush">
-//                 <ListGroup.Item>
-//                   <FaClock className="me-2" />
-//                   <strong>Thời gian:</strong> {formatDateTime(selectedLog.ngaygio)}
-//                 </ListGroup.Item>
-//                 <ListGroup.Item>
-//                   <FaUser className="me-2" />
-//                   <strong>Người thực hiện:</strong> {selectedLog.nguoithuchien.trim()}
-//                 </ListGroup.Item>
-//                 <ListGroup.Item>
-//                   <FaTasks className="me-2" />
-//                   <strong>Hành động:</strong> {translateAction(selectedLog.hanhdong)}
-//                 </ListGroup.Item>
-//                 <ListGroup.Item>
-//                   <strong>Đối tượng:</strong> {translateObjectType(selectedLog.doituong)}
-//                 </ListGroup.Item>
-//               </ListGroup>
-//               {selectedLog.hanhdong !== "LOGIN" && (
-//                 <Row className="mt-3">
-//                   <Col md={6}>
-//                     <Card className="h-100">
-//                       <Card.Header className="bg-light">
-//                         <strong>Giá trị cũ</strong>
-//                       </Card.Header>
-//                       <Card.Body>
-//                         {parseLogDetails(selectedLog) || (
-//                           <pre style={{ whiteSpace: "pre-wrap" }}>
-//                             {selectedLog.giatriCu
-//                               ? JSON.stringify(JSON.parse(selectedLog.giatriCu), null, 2)
-//                               : "Không có"}
-//                           </pre>
-//                         )}
-//                       </Card.Body>
-//                     </Card>
-//                   </Col>
-//                   <Col md={6}>
-//                     <Card className="h-100">
-//                       <Card.Header className="bg-light">
-//                         <strong>Giá trị mới</strong>
-//                       </Card.Header>
-//                       <Card.Body>
-//                         {parseLogDetails(selectedLog) || (
-//                           <pre style={{ whiteSpace: "pre-wrap" }}>
-//                             {selectedLog.giatriMoi
-//                               ? JSON.stringify(JSON.parse(selectedLog.giatriMoi), null, 2)
-//                               : "Không có"}
-//                           </pre>
-//                         )}
-//                       </Card.Body>
-//                     </Card>
-//                   </Col>
-//                 </Row>
-//               )}
-//             </div>
-//           )}
-//         </Modal.Body>
-//         <Modal.Footer>
-//           <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
-//             Đóng
-//           </Button>
-//         </Modal.Footer>
-//       </Modal>
-//     </div>
-//   );
-// };
-
-// export default LichSu;
-
-// import React, { useState, useEffect } from "react";
-// import { Modal, Button, Form, Badge, Spinner } from "react-bootstrap";
-// import { FaUser, FaClock, FaSearch } from "react-icons/fa";
-// import { fetchLog, fetchLogByNhanVienId, fetchNhanVien } from "../services/apiService";
-
-// const LichSu = () => {
-//   const [logList, setLogList] = useState([]);
-//   const [employeeList, setEmployeeList] = useState([]);
-//   const [searchType, setSearchType] = useState("all");
-//   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-//   const token = localStorage.getItem("token");
-
-//   // Load data functions
-//   const loadAllLogs = async () => {
-//     setLoading(true);
-//     try {
-//       const data = await fetchLog(token);
-//       if (data.resultCode === 0) {
-//         setLogList(data.data);
-//         setError(null);
-//       } else {
-//         throw new Error(data.message || "Không thể tải danh sách lịch sử");
-//       }
-//     } catch (err) {
-//       setError("Không thể tải danh sách lịch sử");
-//       console.error("Error loading logs:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const loadLogsByMaNV = async (maNV) => {
-//     setLoading(true);
-//     try {
-//       const data = await fetchLogByNhanVienId(token, maNV);
-//       if (data.resultCode === 0) {
-//         setLogList(data.data);
-//         setError(null);
-//       } else {
-//         throw new Error(data.message || "Không thể tải lịch sử của nhân viên");
-//       }
-//     } catch (err) {
-//       setError("Không thể tải lịch sử của nhân viên");
-//       console.error("Error loading logs by MaNV:", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const loadEmployees = async () => {
-//     try {
-//       const data = await fetchNhanVien(token);
-//       if (data.resultCode === 0) {
-//         setEmployeeList(data.data);
-//       } else {
-//         throw new Error(data.message || "Không thể tải danh sách nhân viên");
-//       }
-//     } catch (err) {
-//       console.error("Error loading employees:", err);
-//     }
-//   };
-
-//   // Event handlers
-//   const handleSearchTypeChange = (e) => {
-//     const type = e.target.value;
-//     setSearchType(type);
-//     setSelectedEmployeeId("");
-//     if (type === "all") {
-//       loadAllLogs();
-//     }
-//   };
-
-//   const handleEmployeeChange = (e) => {
-//     const maNV = e.target.value;
-//     setSelectedEmployeeId(maNV);
-//     if (maNV) {
-//       loadLogsByMaNV(maNV);
-//     }
-//   };
-
-//   // Format and translate functions
-//   const formatDateTime = (dateTimeString) => {
-//     if (!dateTimeString) return "";
-//     const [date, time] = dateTimeString.split(" ");
-//     return `${time} ${date}`;
-//   };
-
-//   const translateAction = (action) => {
-//     switch (action) {
-//       case "LOGIN": return "Đăng nhập hệ thống";
-//       case "UPDATE": return "Cập nhật thông tin";
-//       case "ADD_KHUYENMAI": return "Áp dụng khuyến mãi";
-//       case "REMOVE_KHUYENMAI": return "Gỡ khuyến mãi";
-//       default: return action;
-//     }
-//   };
-
-//   const translateObjectType = (type) => {
-//     switch (type) {
-//       case "SANPHAM": return "Sản phẩm";
-//       case "KHUYENMAI": return "Khuyến mãi";
-//       case "NHANVIEN": return "Nhân viên";
-//       default: return type;
-//     }
-//   };
-
-//   const getActionColor = (action) => {
-//     switch (action) {
-//       case "LOGIN": return "success";
-//       case "UPDATE": return "info";
-//       case "ADD_KHUYENMAI": return "warning";
-//       case "REMOVE_KHUYENMAI": return "danger";
-//       default: return "primary";
-//     }
-//   };
-
-//   // Load initial data
-//   useEffect(() => {
-//     loadAllLogs();
-//     loadEmployees();
-//   }, []);
-
-//   return (
-//     <div className="container-fluid p-3">
-//       <div className="d-flex justify-content-between align-items-center mb-4">
-//         <h3>Lịch sử hoạt động</h3>
-//         <div className="d-flex gap-2">
-//           <Form.Select
-//             value={searchType}
-//             onChange={handleSearchTypeChange}
-//             style={{ width: "150px" }}
-//           >
-//             <option value="all">Tất cả</option>
-//             <option value="employee">Theo nhân viên</option>
-//           </Form.Select>
-          
-//           {searchType === "employee" && (
-//             <Form.Select
-//               value={selectedEmployeeId}
-//               onChange={handleEmployeeChange}
-//               style={{ width: "200px" }}
-//             >
-//               <option value="">Chọn nhân viên</option>
-//               {employeeList.map((employee) => (
-//                 <option key={employee.id} value={employee.id}>
-//                   {employee.hoten} ({employee.id.trim()})
-//                 </option>
-//               ))}
-//             </Form.Select>
-//           )}
-//         </div>
-//       </div>
-
-//       {loading && (
-//         <div className="text-center py-4">
-//           <Spinner animation="border" variant="primary" />
-//         </div>
-//       )}
-
-//       {error && <div className="alert alert-danger">{error}</div>}
-
-//       {searchType === "employee" && !selectedEmployeeId ? (
-//         <div className="text-center py-4 text-muted">
-//           <FaSearch className="me-2" />
-//           Vui lòng chọn nhân viên để xem lịch sử
-//         </div>
-//       ) : logList.length === 0 ? (
-//         <div className="text-center py-4 text-muted">
-//           Không tìm thấy lịch sử hoạt động nào
-//         </div>
-//       ) : (
-//         <div className="timeline">
-//           {logList.map((log, index) => (
-//             <div key={log.id} className="timeline-item">
-//               <div className="timeline-dot bg-primary"></div>
-//               <div className="timeline-content p-3 mb-3 bg-light rounded">
-//                 <div className="d-flex justify-content-between align-items-center mb-2">
-//                   <div>
-//                     <Badge bg={getActionColor(log.hanhdong)} className="me-2">
-//                       {translateAction(log.hanhdong)}
-//                     </Badge>
-//                     <Badge bg="secondary">
-//                       {translateObjectType(log.doituong)}
-//                     </Badge>
-//                   </div>
-//                   <small className="text-muted">
-//                     <FaClock className="me-1" />
-//                     {formatDateTime(log.ngaygio)}
-//                   </small>
-//                 </div>
-//                 <div className="d-flex align-items-center">
-//                   <FaUser className="me-2 text-muted" />
-//                   <span>{log.nguoithuchien.trim()}</span>
-//                 </div>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-
-//       <style>{`
-//         .timeline {
-//           position: relative;
-//           padding-left: 30px;
-//         }
-//         .timeline-item {
-//           position: relative;
-//           padding-bottom: 20px;
-//         }
-//         .timeline-dot {
-//           position: absolute;
-//           left: -15px;
-//           top: 10px;
-//           width: 12px;
-//           height: 12px;
-//           border-radius: 50%;
-//           background-color: #007bff;
-//         }
-//         .timeline-content {
-//           position: relative;
-//           border-left: 2px solid #dee2e6;
-//           padding-left: 20px;
-//         }
-//         .timeline-item:last-child .timeline-content {
-//           border-left-color: transparent;
-//         }
-//       `}</style>
-//     </div>
-//   );
-// };
-
-// export default LichSu;
-
-
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Badge, Spinner, Pagination } from "react-bootstrap";
-import { FaUser, FaClock, FaSearch, FaInfoCircle } from "react-icons/fa";
-import { fetchLog, fetchLogByNhanVienId, fetchNhanVien } from "../services/apiService";
-
-const LichSu = () => {
-  const [logList, setLogList] = useState([]);
-  const [employeeList, setEmployeeList] = useState([]);
-  const [searchType, setSearchType] = useState("all");
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [loading, setLoading] = useState(false);
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Table,
+  Button,
+  Form,
+  Badge,
+  Spinner,
+  Pagination,
+  Row,
+  Col,
+  Modal,
+  Card,
+  Alert,
+  InputGroup,
+} from "react-bootstrap";
+import {
+  FiClock,
+  FiUser,
+  FiFilter,
+  FiSearch,
+  FiRefreshCw,
+  FiDownload,
+  FiEye,
+} from "react-icons/fi";
+import { format, isWithinInterval } from "date-fns";
+import { vi } from "date-fns/locale";
+import {
+  fetchLog,
+  fetchLogByNhanVienId,
+  fetchNhanVien,
+} from "../services/apiService";
+import * as XLSX from "xlsx";
+import Swal from "sweetalert2";
+
+const LichSu2 = () => {
+  // State management
+  const [logs, setLogs] = useState([]);
+  const [filteredLogs, setFilteredLogs] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // Number of logs per page
+  const [logsPerPage] = useState(15);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Filter states
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [actionFilter, setActionFilter] = useState("all");
+  const [objectTypeFilter, setObjectTypeFilter] = useState("all");
+  const [employeeFilter, setEmployeeFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
   const token = localStorage.getItem("token");
 
-  // Load data functions
-  const loadAllLogs = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchLog(token);
-      if (data.resultCode === 0) {
-        setLogList(data.data);
-        setError(null);
-        setCurrentPage(1);
-      } else {
-        throw new Error(data.message || "Không thể tải danh sách lịch sử");
-      }
-    } catch (err) {
-      setError("Không thể tải danh sách lịch sử");
-      console.error("Error loading logs:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadLogsByMaNV = async (maNV) => {
-    setLoading(true);
-    try {
-      const data = await fetchLogByNhanVienId(token, maNV);
-      if (data.resultCode === 0) {
-        setLogList(data.data);
-        setError(null);
-        setCurrentPage(1);
-      } else {
-        throw new Error(data.message || "Không thể tải lịch sử của nhân viên");
-      }
-    } catch (err) {
-      setError("Không thể tải lịch sử của nhân viên");
-      console.error("Error loading logs by MaNV:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadEmployees = async () => {
-    try {
-      const data = await fetchNhanVien(token);
-      if (data.resultCode === 0) {
-        setEmployeeList(data.data);
-      } else {
-        throw new Error(data.message || "Không thể tải danh sách nhân viên");
-      }
-    } catch (err) {
-      console.error("Error loading employees:", err);
-    }
-  };
-
-  // Pagination calculations
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentLogs = logList.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(logList.length / itemsPerPage);
-
-  // Pagination handler
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  // Event handlers
-  const handleSearchTypeChange = (e) => {
-    const type = e.target.value;
-    setSearchType(type);
-    setSelectedEmployeeId("");
-    if (type === "all") {
-      loadAllLogs();
-    }
-  };
-
-  const handleEmployeeChange = (e) => {
-    const maNV = e.target.value;
-    setSelectedEmployeeId(maNV);
-    if (maNV) {
-      loadLogsByMaNV(maNV);
-    }
-  };
-
-  // Format and translate functions
-  const formatDateTime = (dateTimeString) => {
-    if (!dateTimeString) return "";
-    const [date, time] = dateTimeString.split(" ");
-    const formattedDate = date.split("-").reverse().join("/");
-    return `${time} ${formattedDate}`;
-  };
-
-  const translateAction = (action) => {
-    switch (action) {
-      case "LOGIN": return "Đăng nhập hệ thống";
-      case "UPDATE": return "Cập nhật thông tin";
-      case "ADD_KHUYENMAI": return "Áp dụng khuyến mãi";
-      case "REMOVE_KHUYENMAI": return "Gỡ khuyến mãi";
-      case "CREATE": return "Tạo mới";
-      case "DELETE": return "Xóa";
-      default: return action;
-    }
-  };
-
-  const translateObjectType = (type) => {
-    switch (type) {
-      case "SANPHAM": return "Sản phẩm";
-      case "KHUYENMAI": return "Khuyến mãi";
-      case "NHANVIEN": return "Nhân viên";
-      case "HOADON": return "Hóa đơn";
-      case "DONHANG": return "Đơn hàng";
-      default: return type;
-    }
-  };
-
-  const getActionColor = (action) => {
-    switch (action) {
-      case "LOGIN": return "success";
-      case "UPDATE": return "info";
-      case "ADD_KHUYENMAI": return "warning";
-      case "REMOVE_KHUYENMAI": return "danger";
-      case "CREATE": return "primary";
-      case "DELETE": return "dark";
-      default: return "secondary";
-    }
-  };
-
-  // Load initial data
+  // Fetch data on mount
   useEffect(() => {
-    loadAllLogs();
-    loadEmployees();
+    const fetchData = async () => {
+      try {
+        const [logsRes, employeesRes] = await Promise.all([
+          fetchLog(token),
+          fetchNhanVien(token),
+        ]);
+
+        if (logsRes.resultCode === 0 && employeesRes.resultCode === 0) {
+          setLogs(logsRes.data);
+          setFilteredLogs(logsRes.data);
+          setEmployees(employeesRes.data);
+        } else {
+          throw new Error(
+            logsRes.message || employeesRes.message || "Lỗi khi tải dữ liệu"
+          );
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  // Pagination component
-  const renderPagination = () => {
-    const pageItems = [];
-    const maxPagesToShow = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+  // Apply filters whenever they change
+  useEffect(() => {
+    applyFilters();
+  }, [
+    logs,
+    startDate,
+    endDate,
+    actionFilter,
+    objectTypeFilter,
+    employeeFilter,
+    searchQuery,
+  ]);
 
-    if (endPage - startPage + 1 < maxPagesToShow) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+  const applyFilters = () => {
+    let result = [...logs];
+
+    // Date range filter
+    if (startDate || endDate) {
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+
+      result = result.filter((log) => {
+        // Convert log date from "dd/MM/yyyy HH:mm:ss" to Date object
+        const [datePart, timePart] = log.ngaygio.split(" ");
+        const [day, month, year] = datePart.split("/");
+        const logDate = new Date(`${year}-${month}-${day}T${timePart}`);
+
+        if (start && end) {
+          return isWithinInterval(logDate, { start, end });
+        } else if (start) {
+          return logDate >= start;
+        } else if (end) {
+          return logDate <= end;
+        }
+        return true;
+      });
     }
 
-    for (let i = startPage; i <= endPage; i++) {
-      pageItems.push(
-        <Pagination.Item
-          key={i}
-          active={i === currentPage}
-          onClick={() => paginate(i)}
-        >
-          {i}
-        </Pagination.Item>
+    // Action type filter
+    if (actionFilter !== "all") {
+      result = result.filter((log) => log.hanhdong === actionFilter);
+    }
+
+    // Object type filter
+    if (objectTypeFilter !== "all") {
+      result = result.filter((log) => log.doituong === objectTypeFilter);
+    }
+
+    // Employee filter
+    if (employeeFilter !== "all") {
+      result = result.filter(
+        (log) => log.nguoithuchien.trim() === employeeFilter
       );
     }
 
+    // Search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (log) =>
+          log.hanhdong.toLowerCase().includes(query) ||
+          log.doituong.toLowerCase().includes(query) ||
+          log.nguoithuchien.toLowerCase().includes(query) ||
+          (log.chitiet && log.chitiet.toLowerCase().includes(query))
+      );
+    }
+
+    setFilteredLogs(result);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const resetFilters = () => {
+    setStartDate("");
+    setEndDate("");
+    setActionFilter("all");
+    setObjectTypeFilter("all");
+    setEmployeeFilter("all");
+    setSearchQuery("");
+  };
+
+  // Pagination logic
+  const indexOfLastLog = currentPage * logsPerPage;
+  const indexOfFirstLog = indexOfLastLog - logsPerPage;
+  const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
+  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+
+  // Action and object type options for filters
+  const actionTypes = useMemo(() => {
+    const types = new Set();
+    logs.forEach((log) => types.add(log.hanhdong));
+    return Array.from(types);
+  }, [logs]);
+
+  const objectTypes = useMemo(() => {
+    const types = new Set();
+    logs.forEach((log) => types.add(log.doituong));
+    return Array.from(types);
+  }, [logs]);
+
+  // Translation functions
+  const translateAction = (action) => {
+    const actions = {
+      LOGIN: "Đăng nhập",
+      LOGOUT: "Đăng xuất",
+      UPDATE: "Cập nhật",
+      CREATE: "Tạo mới",
+      DELETE: "Xóa",
+      ADD_KHUYENMAI: "Thêm khuyến mãi",
+      REMOVE_KHUYENMAI: "Gỡ khuyến mãi",
+      ORDER: "Đơn hàng",
+      PAYMENT: "Thanh toán",
+      CANCEL: "Hủy bỏ",
+    };
+    return actions[action] || action;
+  };
+
+  const translateObjectType = (type) => {
+    const types = {
+      SANPHAM: "Sản phẩm",
+      KHUYENMAI: "Khuyến mãi",
+      NHANVIEN: "Nhân viên",
+      KHACHHANG: "Khách hàng",
+      DONHANG: "Đơn hàng",
+      HOADON: "Hóa đơn",
+    };
+    return types[type] || type;
+  };
+
+  const getActionColor = (action) => {
+    const colors = {
+      LOGIN: "success",
+      LOGOUT: "secondary",
+      UPDATE: "info",
+      CREATE: "primary",
+      DELETE: "danger",
+      ADD_KHUYENMAI: "warning",
+      REMOVE_KHUYENMAI: "dark",
+      ORDER: "primary",
+      PAYMENT: "success",
+      CANCEL: "danger",
+    };
+    return colors[action] || "light";
+  };
+
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return "";
+    return dateTimeString;
+  };
+
+  const handleViewDetails = (log) => {
+    setSelectedLog(log);
+    setShowDetailModal(true);
+  };
+
+  const handleExport = () => {
+    if (filteredLogs.length === 0) {
+      Swal.fire({
+        title: "Lỗi!",
+        text: `Không thể xuất file!`,
+        icon: "Error",
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
+    // Chuẩn bị dữ liệu chi tiết hơn
+    const dataForExport = filteredLogs.map((log) => {
+      const baseData = {
+        "Thời gian": log.ngaygio,
+        "Hành động": translateAction(log.hanhdong),
+        "Đối tượng": translateObjectType(log.doituong),
+        "Nhân viên thực hiện": log.nguoithuchien.trim(),
+        "Chi tiết": log.chitiet || "",
+      };
+
+      // Thêm thông tin từ dữ liệu cũ/mới nếu có
+      try {
+        if (log.giatriCu) {
+          const oldData = JSON.parse(log.giatriCu);
+          baseData["Dữ liệu cũ"] = JSON.stringify(oldData, null, 2);
+        }
+        if (log.giatriMoi) {
+          const newData = JSON.parse(log.giatriMoi);
+          baseData["Dữ liệu mới"] = JSON.stringify(newData, null, 2);
+        }
+      } catch (e) {
+        console.error("Lỗi phân tích dữ liệu JSON", e);
+      }
+
+      return baseData;
+    });
+
+    // Tạo worksheet
+    const ws = XLSX.utils.json_to_sheet(dataForExport);
+
+    // Định dạng cột
+    ws["!cols"] = [
+      { width: 20 }, // Thời gian
+      { width: 15 }, // Hành động
+      { width: 15 }, // Đối tượng
+      { width: 20 }, // Nhân viên
+      { width: 50 }, // Chi tiết
+      { width: 50 }, // Dữ liệu cũ
+      { width: 50 }, // Dữ liệu mới
+    ];
+
+    // Tạo workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Lịch sử hoạt động");
+
+    // Xuất file với tên chứa ngày giờ hiện tại
+    const fileName = `LichSuHoatDong_${format(
+      new Date(),
+      "ddMMyyyy_HHmm"
+    )}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    // Hiển thị thông báo (tuỳ chọn)
+    Swal.fire({
+      title: "Thành công!",
+      text: `Đã xuất file Excel thành công: ${fileName}`,
+      icon: "success",
+      confirmButtonText: "OK",
+    });
+  };
+
+  // Thêm các component mới bên dưới cùng của file
+  const LoginDetails = ({ log }) => {
+    const data = log.giatriCu ? JSON.parse(log.giatriCu) : null;
+
     return (
-      <Pagination className="justify-content-center mt-4">
-        <Pagination.First
-          onClick={() => paginate(1)}
-          disabled={currentPage === 1}
-        />
-        <Pagination.Prev
-          onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
-        />
-        {pageItems}
-        <Pagination.Next
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        />
-        <Pagination.Last
-          onClick={() => paginate(totalPages)}
-          disabled={currentPage === totalPages}
-        />
-      </Pagination>
+      <div>
+        <h6>Thông tin đăng nhập</h6>
+        <ul className="mb-0">
+          <li>
+            Họ tên: <strong>{data?.hoten}</strong>
+          </li>
+          <li>
+            Vai trò:{" "}
+            <strong>
+              {data?.roleid?.rolename === "ROLE_ADMIN"
+                ? "Quản trị viên"
+                : "Nhân viên bán hàng"}
+            </strong>
+          </li>
+          <li>
+            Số điện thoại: <strong>{data?.sodt}</strong>
+          </li>
+          <li>
+            Trạng thái:{" "}
+            <strong>
+              {data?.status === "active" ? "Hoạt động" : "Không hoạt động"}
+            </strong>
+          </li>
+        </ul>
+      </div>
     );
+  };
+
+  const CreateNhanVienDetails = ({ log }) => {
+    const data = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
+
+    return (
+      <div>
+        <h6>Thông tin nhân viên mới</h6>
+        <ul className="mb-0">
+          <li>
+            Mã NV: <strong>{data?.id?.trim()}</strong>
+          </li>
+          <li>
+            Họ tên: <strong>{data?.hoten}</strong>
+          </li>
+          <li>
+            Số điện thoại: <strong>{data?.sodt}</strong>
+          </li>
+          <li>
+            Ngày vào làm: <strong>{data?.ngvl}</strong>
+          </li>
+          <li>
+            Vai trò:{" "}
+            <strong>
+              {data?.roleid?.rolename === "ROLE_ADMIN"
+                ? "Quản trị viên"
+                : "Nhân viên bán hàng"}
+            </strong>
+          </li>
+          <li>
+            Trạng thái:{" "}
+            <strong>
+              {data?.status === "active" ? "Hoạt động" : "Không hoạt động"}
+            </strong>
+          </li>
+        </ul>
+      </div>
+    );
+  };
+
+  const CreateHoaDonDetails = ({ log }) => {
+    const data = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
+
+    if (!data) return <p>Không có thông tin chi tiết</p>;
+
+    return (
+      <div>
+        <h6>Thông tin hóa đơn</h6>
+        <Row>
+          <Col md={6}>
+            <h6 className="text-muted">Khách hàng</h6>
+            <ul className="mb-3">
+              <li>
+                Mã KH: <strong>{data.makh?.id?.trim()}</strong>
+              </li>
+              <li>
+                Họ tên: <strong>{data.makh?.hoten}</strong>
+              </li>
+              <li>
+                SĐT: <strong>{data.makh?.sodt}</strong>
+              </li>
+            </ul>
+          </Col>
+          <Col md={6}>
+            <h6 className="text-muted">Nhân viên</h6>
+            <ul className="mb-3">
+              <li>
+                Mã NV: <strong>{data.manv?.id?.trim()}</strong>
+              </li>
+              <li>
+                Họ tên: <strong>{data.manv?.hoten}</strong>
+              </li>
+              <li>
+                SĐT: <strong>{data.manv?.sodt}</strong>
+              </li>
+            </ul>
+          </Col>
+        </Row>
+
+        <h6 className="text-muted">Chi tiết hóa đơn</h6>
+        <div className="table-responsive">
+          <table className="table table-sm">
+            <thead>
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Đơn vị</th>
+                <th>Giá gốc</th>
+                <th>KM</th>
+                <th>Giá KM</th>
+                <th>SL</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.cthds?.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.masp?.tensp}</td>
+                  <td>{item.masp?.dvt}</td>
+                  <td>{item.masp?.gia?.toLocaleString()}đ</td>
+                  <td>
+                    {item.masp?.makm
+                      ? `${item.masp?.makm?.phantram}%`
+                      : "Không"}
+                  </td>
+                  <td>{item.gia?.toLocaleString()}đ</td>
+                  <td>{item.sl}</td>
+                  <td>{(item.gia * item.sl)?.toLocaleString()}đ</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="text-end mt-2">
+          <h5>
+            Tổng cộng: <strong>{data.trigia?.toLocaleString()}đ</strong>
+          </h5>
+        </div>
+      </div>
+    );
+  };
+
+  const KhuyenMaiDetails = ({ log }) => {
+    const oldData = log.giatriCu ? JSON.parse(log.giatriCu) : null;
+    const newData = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
+
+    return (
+      <div>
+        <h6>Thông tin sản phẩm</h6>
+        <ul className="mb-3">
+          <li>
+            Mã SP: <strong>{newData?.id || oldData?.id}</strong>
+          </li>
+          <li>
+            Tên SP: <strong>{newData?.tensp || oldData?.tensp}</strong>
+          </li>
+          <li>
+            Đơn vị: <strong>{newData?.dvt || oldData?.dvt}</strong>
+          </li>
+          <li>
+            Giá bán:{" "}
+            <strong>{(newData?.gia || oldData?.gia)?.toLocaleString()}đ</strong>
+          </li>
+        </ul>
+
+        <h6 className="text-muted">
+          {log.hanhdong === "ADD_KHUYENMAI"
+            ? "Khuyến mãi được áp dụng"
+            : "Khuyến mãi bị gỡ bỏ"}
+        </h6>
+
+        {log.hanhdong === "ADD_KHUYENMAI" ? (
+          <ul className="mb-0">
+            <li>
+              Mã KM: <strong>{newData?.makm?.id}</strong>
+            </li>
+            <li>
+              Nội dung: <strong>{newData?.makm?.noidung}</strong>
+            </li>
+            <li>
+              Giảm giá: <strong>{newData?.makm?.phantram}%</strong>
+            </li>
+            <li>
+              Thời gian: {newData?.makm?.ngaybd} đến {newData?.makm?.ngaykt}
+            </li>
+          </ul>
+        ) : (
+          <ul className="mb-0">
+            <li>
+              Mã KM: <strong>{oldData?.makm?.id}</strong>
+            </li>
+            <li>
+              Nội dung: <strong>{oldData?.makm?.noidung}</strong>
+            </li>
+            <li>
+              Giảm giá: <strong>{oldData?.makm?.phantram}%</strong>
+            </li>
+            <li>
+              Thời gian: {oldData?.makm?.ngaybd} đến {oldData?.makm?.ngaykt}
+            </li>
+          </ul>
+        )}
+      </div>
+    );
+  };
+
+  const UpdateSanPhamDetails = ({ log }) => {
+    const oldData = log.giatriCu ? JSON.parse(log.giatriCu) : null;
+    const newData = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
+
+    if (!oldData || !newData) return <p>Không có thông tin chi tiết</p>;
+
+    const changes = [];
+
+    // So sánh các trường thay đổi
+    if (oldData.tensp !== newData.tensp) {
+      changes.push({
+        field: "Tên sản phẩm",
+        old: oldData.tensp,
+        new: newData.tensp,
+      });
+    }
+
+    if (oldData.dvt !== newData.dvt) {
+      changes.push({
+        field: "Đơn vị tính",
+        old: oldData.dvt,
+        new: newData.dvt,
+      });
+    }
+
+    if (oldData.gia !== newData.gia) {
+      changes.push({
+        field: "Giá bán",
+        old: `${oldData.gia?.toLocaleString()} VND`,
+        new: `${newData.gia?.toLocaleString()} VND`,
+      });
+    }
+
+    if (oldData.imageurl !== newData.imageurl) {
+      changes.push({
+        field: "Hình ảnh",
+        old: oldData.imageurl ? "Có" : "Không",
+        new: newData.imageurl ? "Có" : "Không",
+      });
+    }
+
+    if (oldData.status !== newData.status) {
+      changes.push({
+        field: "Trạng thái",
+        old: oldData.status ? "Có sẵn" : "Hết hàng",
+        new: newData.status ? "Có sẵn" : "Hết hàng",
+      });
+    }
+
+    return (
+      <div>
+        <h6>Thông tin sản phẩm được cập nhật</h6>
+        <p>
+          Mã SP: <strong>{newData.id}</strong>
+        </p>
+
+        {changes.length > 0 ? (
+          <div className="table-responsive">
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th>Nội dung</th>
+                  <th>Giá trị cũ</th>
+                  <th>Giá trị mới</th>
+                </tr>
+              </thead>
+              <tbody>
+                {changes.map((change, index) => (
+                  <tr key={index}>
+                    <td>{change.field}</td>
+                    <td>{change.old}</td>
+                    <td>{change.new}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>Không có thay đổi nào được phát hiện</p>
+        )}
+      </div>
+    );
+  };
+
+  const UpdateNhanVienDetails = ({ log }) => {
+    const oldData = log.giatriCu ? JSON.parse(log.giatriCu) : null;
+    const newData = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
+
+    if (!oldData || !newData) return <p>Không có thông tin chi tiết</p>;
+
+    const changes = [];
+
+    // So sánh các trường thay đổi
+    if (oldData.hoten !== newData.hoten) {
+      changes.push({
+        field: "Họ và tên",
+        old: oldData.hoten,
+        new: newData.hoten,
+      });
+    }
+
+    if (oldData.sodt !== newData.sodt) {
+      changes.push({
+        field: "Số điện thoại",
+        old: oldData.sodt,
+        new: newData.sodt,
+      });
+    }
+
+    if (oldData.status !== newData.status) {
+      changes.push({
+        field: "Trạng thái",
+        old: oldData.status === "active" ? "Hoạt động" : "Không hoạt động",
+        new: newData.status === "active" ? "Hoạt động" : "Không hoạt động",
+      });
+    }
+
+    return (
+      <div>
+        <h6>Thông tin nhân viên được cập nhật</h6>
+        <p>
+          Mã NV: <strong>{newData.id?.trim()}</strong>
+        </p>
+
+        {changes.length > 0 ? (
+          <div className="table-responsive">
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th>Nội dung</th>
+                  <th>Giá trị cũ</th>
+                  <th>Giá trị mới</th>
+                </tr>
+              </thead>
+              <tbody>
+                {changes.map((change, index) => (
+                  <tr key={index}>
+                    <td>{change.field}</td>
+                    <td>{change.old}</td>
+                    <td>{change.new}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>Không có thay đổi nào được phát hiện</p>
+        )}
+      </div>
+    );
+  };
+
+  const UpdateKhuyenMaiDetails = ({ log }) => {
+    const oldData = log.giatriCu ? JSON.parse(log.giatriCu) : null;
+    const newData = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
+
+    if (!oldData || !newData) return <p>Không có thông tin chi tiết</p>;
+
+    const changes = [];
+
+    // So sánh các trường thay đổi
+    if (oldData.noidung !== newData.noidung) {
+      changes.push({
+        field: "Nội dung",
+        old: oldData.noidung,
+        new: newData.noidung,
+      });
+    }
+
+    if (oldData.phantram !== newData.phantram) {
+      changes.push({
+        field: "Phần trăm giảm",
+        old: `${oldData.phantram}%`,
+        new: `${newData.phantram}%`,
+      });
+    }
+
+    if (
+      oldData.ngaybd !== newData.ngaybd ||
+      oldData.ngaykt !== newData.ngaykt
+    ) {
+      changes.push({
+        field: "Thời gian áp dụng",
+        old: `Từ ngày ${oldData.ngaybd} đến ngày ${oldData.ngaykt}`,
+        new: `Từ ngày ${newData.ngaybd} đến ngày ${newData.ngaykt}`,
+      });
+    }
+
+    return (
+      <div>
+        <h6>Thông tin khuyến mãi được cập nhật</h6>
+        <p>
+          Mã KM: <strong>{newData.id}</strong>
+        </p>
+
+        {changes.length > 0 ? (
+          <div className="table-responsive">
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th>Nội dung</th>
+                  <th>Giá trị cũ</th>
+                  <th>Giá trị mới</th>
+                </tr>
+              </thead>
+              <tbody>
+                {changes.map((change, index) => (
+                  <tr key={index}>
+                    <td>{change.field}</td>
+                    <td>{change.old}</td>
+                    <td>{change.new}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>Không có thay đổi nào được phát hiện</p>
+        )}
+      </div>
+    );
+  };
+
+  const UpdateKhachHangDetails = ({ log }) => {
+    const oldData = log.giatriCu ? JSON.parse(log.giatriCu) : null;
+    const newData = log.giatriMoi ? JSON.parse(log.giatriMoi) : null;
+
+    if (!oldData || !newData) return <p>Không có thông tin chi tiết</p>;
+
+    const changes = [];
+
+    // So sánh các trường thay đổi
+    if (oldData.hoten !== newData.hoten) {
+      changes.push({
+        field: "Họ và tên",
+        old: oldData.hoten,
+        new: newData.hoten,
+      });
+    }
+
+    if (oldData.dchi !== newData.dchi) {
+      changes.push({
+        field: "Địa chỉ",
+        old: oldData.dchi,
+        new: newData.dchi,
+      });
+    }
+
+    if (oldData.sodt !== newData.sodt) {
+      changes.push({
+        field: "Số điện thoại",
+        old: oldData.sodt,
+        new: newData.sodt,
+      });
+    }
+
+    if (oldData.ngsinh !== newData.ngsinh) {
+      changes.push({
+        field: "Ngày sinh",
+        old: oldData.ngsinh,
+        new: newData.ngsinh,
+      });
+    }
+
+    if (oldData.status !== newData.status) {
+      changes.push({
+        field: "Trạng thái",
+        old: oldData.status === "active" ? "Hoạt động" : "Không hoạt động",
+        new: newData.status === "active" ? "Hoạt động" : "Không hoạt động",
+      });
+    }
+
+    return (
+      <div>
+        <h6>Thông tin khách hàng được cập nhật</h6>
+        <p>
+          Mã KH: <strong>{newData.id?.trim()}</strong>
+        </p>
+
+        {changes.length > 0 ? (
+          <div className="table-responsive">
+            <table className="table table-sm">
+              <thead>
+                <tr>
+                  <th>Nội dung</th>
+                  <th>Giá trị cũ</th>
+                  <th>Giá trị mới</th>
+                </tr>
+              </thead>
+              <tbody>
+                {changes.map((change, index) => (
+                  <tr key={index}>
+                    <td>{change.field}</td>
+                    <td>{change.old}</td>
+                    <td>{change.new}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>Không có thay đổi nào được phát hiện</p>
+        )}
+      </div>
+    );
+  };
+
+  const DeleteNhanVienDetails = ({ log }) => {
+    const oldData = log.giatriCu;
+
+    return (
+      <div>
+        <Alert variant="danger">
+          <h6>Nhân viên đã bị xóa</h6>
+          <p className="mb-0">
+            Mã nhân viên: <strong>{oldData?.trim()}</strong>
+          </p>
+        </Alert>
+        <p>Không có thông tin chi tiết về nhân viên này.</p>
+      </div>
+    );
+  };
+
+  const DeleteKhachHangDetails = ({ log }) => {
+    const oldData = log.giatriCu;
+
+    return (
+      <div>
+        <Alert variant="danger">
+          <h6>Khách hàng đã bị xóa</h6>
+          <p className="mb-0">
+            Mã khách hàng: <strong>{oldData?.trim()}</strong>
+          </p>
+        </Alert>
+        <p>Không có thông tin chi tiết về khách hàng này.</p>
+      </div>
+    );
+  };
+
+  const GenericDetails = ({ log }) => {
+    return <div>{log.chitiet && <p>{log.chitiet}</p>}</div>;
   };
 
   return (
     <div className="container-fluid p-4">
-      <div className="card shadow-sm">
-        <div className="card-header bg-primary text-white">
-          <h3 className="mb-0">Lịch sử hoạt động</h3>
-        </div>
-        <div className="card-body">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <div className="d-flex gap-3">
-              <Form.Select
-                value={searchType}
-                onChange={handleSearchTypeChange}
-                style={{ width: "200px" }}
-              >
-                <option value="all">Tất cả lịch sử</option>
-                <option value="employee">Theo nhân viên</option>
-              </Form.Select>
-              
-              {searchType === "employee" && (
-                <Form.Select
-                  value={selectedEmployeeId}
-                  onChange={handleEmployeeChange}
-                  style={{ width: "250px" }}
-                >
-                  <option value="">Chọn nhân viên</option>
-                  {employeeList.map((employee) => (
-                    <option key={employee.id} value={employee.id}>
-                      {employee.hoten} ({employee.id.trim()})
-                    </option>
-                  ))}
-                </Form.Select>
+      <Card className="shadow-sm">
+        <Card.Header className="bg-white border-bottom d-flex justify-content-between align-items-center">
+          <h5 className="mb-0">
+            <FiClock className="me-2" />
+            Lịch sử hoạt động hệ thống
+          </h5>
+          <div>
+            <Button
+              variant="outline-primary"
+              size="sm"
+              className="me-2"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <FiFilter className="me-1" />
+              {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
+            </Button>
+            <Button
+              variant="outline-success"
+              size="sm"
+              onClick={handleExport}
+              disabled={filteredLogs.length === 0}
+            >
+              <FiDownload className="me-1" />
+              Xuất Excel
+            </Button>
+          </div>
+        </Card.Header>
+
+        <Card.Body>
+          {/* Filter Section */}
+          {showFilters && (
+            <div className="mb-4 p-3 border rounded bg-light">
+              <Row className="g-3">
+                <Col md={3}>
+                  <Form.Group>
+                    <Form.Label>Từ ngày</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+
+                <Col md={3}>
+                  <Form.Group>
+                    <Form.Label>Đến ngày</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate}
+                    />
+                  </Form.Group>
+                </Col>
+
+                <Col md={2}>
+                  <Form.Group>
+                    <Form.Label>Hành động</Form.Label>
+                    <Form.Select
+                      value={actionFilter}
+                      onChange={(e) => setActionFilter(e.target.value)}
+                    >
+                      <option value="all">Tất cả</option>
+                      {actionTypes.map((action) => (
+                        <option key={action} value={action}>
+                          {translateAction(action)}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+
+                <Col md={2}>
+                  <Form.Group>
+                    <Form.Label>Đối tượng</Form.Label>
+                    <Form.Select
+                      value={objectTypeFilter}
+                      onChange={(e) => setObjectTypeFilter(e.target.value)}
+                    >
+                      <option value="all">Tất cả</option>
+                      {objectTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {translateObjectType(type)}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+
+                <Col md={2}>
+                  <Form.Group>
+                    <Form.Label>Nhân viên</Form.Label>
+                    <Form.Select
+                      value={employeeFilter}
+                      onChange={(e) => setEmployeeFilter(e.target.value)}
+                    >
+                      <option value="all">Tất cả nhân viên</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id.trim()}>
+                          {emp.hoten} ({emp.id.trim()})
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+
+              <Row className="mt-3">
+                <Col md={8}>
+                  <InputGroup>
+                    <InputGroup.Text>
+                      <FiSearch />
+                    </InputGroup.Text>
+                    <Form.Control
+                      type="text"
+                      placeholder="Tìm kiếm theo từ khóa..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </InputGroup>
+                </Col>
+                <Col md={4} className="d-flex align-items-end">
+                  <Button
+                    variant="outline-secondary"
+                    onClick={resetFilters}
+                    className="w-100"
+                  >
+                    <FiRefreshCw className="me-1" />
+                    Đặt lại bộ lọc
+                  </Button>
+                </Col>
+              </Row>
+            </div>
+          )}
+
+          {/* Status Bar */}
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="text-muted">
+              Hiển thị <strong>{filteredLogs.length}</strong> kết quả
+              {(startDate || endDate) && (
+                <span className="ms-2">
+                  {startDate &&
+                    `từ ${format(new Date(startDate), "dd/MM/yyyy", {
+                      locale: vi,
+                    })}`}
+                  {startDate && endDate && " đến "}
+                  {endDate && !startDate && "trước "}
+                  {endDate &&
+                    `${format(new Date(endDate), "dd/MM/yyyy", {
+                      locale: vi,
+                    })}`}
+                </span>
               )}
             </div>
-            <div className="text-muted">
-              Tổng số: {logList.length} bản ghi
+            <div>
+              {loading && (
+                <Spinner animation="border" size="sm" className="me-2" />
+              )}
             </div>
           </div>
 
-          {loading && (
-            <div className="text-center py-4">
-              <Spinner animation="border" variant="primary" />
-              <span className="ms-2">Đang tải...</span>
-            </div>
-          )}
-
+          {/* Error Alert */}
           {error && (
-            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+            <Alert variant="danger" className="mb-3">
               {error}
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setError(null)}
-              ></button>
-            </div>
+            </Alert>
           )}
 
-          {searchType === "employee" && !selectedEmployeeId ? (
-            <div className="text-center py-4 text-muted">
-              <FaSearch className="me-2" size={24} />
-              Vui lòng chọn nhân viên để xem lịch sử
-            </div>
-          ) : logList.length === 0 ? (
-            <div className="text-center py-4 text-muted">
-              <FaInfoCircle className="me-2" size={24} />
-              Không tìm thấy lịch sử hoạt động nào
-            </div>
-          ) : (
-            <div className="timeline">
-              {currentLogs.map((log) => (
-                <div key={log.id} className="timeline-item">
-                  <div className="timeline-dot" style={{ backgroundColor: getActionColor(log.hanhdong) }}></div>
-                  <div className="timeline-content p-4 mb-3 bg-light rounded shadow-sm">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <div>
-                        <Badge bg={getActionColor(log.hanhdong)} className="me-2">
+          {/* Logs Table */}
+          <div className="table-responsive">
+            <Table striped bordered hover className="mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th width="50px">STT</th>
+                  <th width="150px">Thời gian</th>
+                  <th width="120px">Hành động</th>
+                  <th width="120px">Đối tượng</th>
+                  <th>Nhân viên</th>
+                  <th width="100px">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4">
+                      <Spinner animation="border" variant="primary" />
+                      <p className="mt-2">Đang tải dữ liệu...</p>
+                    </td>
+                  </tr>
+                ) : filteredLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4 text-muted">
+                      Không tìm thấy bản ghi nào phù hợp
+                    </td>
+                  </tr>
+                ) : (
+                  currentLogs.map((log, index) => (
+                    <tr key={log.id}>
+                      <td>{indexOfFirstLog + index + 1}</td>
+                      <td>
+                        <small className="text-muted">
+                          <FiClock className="me-1" />
+                          {formatDateTime(log.ngaygio)}
+                        </small>
+                      </td>
+                      <td>
+                        <Badge
+                          bg={getActionColor(log.hanhdong)}
+                          className="w-100"
+                        >
                           {translateAction(log.hanhdong)}
                         </Badge>
-                        <Badge bg="secondary">
+                      </td>
+                      <td>
+                        <Badge bg="info" text="dark" className="w-100">
                           {translateObjectType(log.doituong)}
                         </Badge>
-                      </div>
-                      <small className="text-muted">
-                        <FaClock className="me-1" />
-                        {formatDateTime(log.ngaygio)}
-                      </small>
-                    </div>
-                    <div className="d-flex align-items-center mb-2">
-                      <FaUser className="me-2 text-muted" />
-                      <span className="fw-bold">{log.nguoithuchien.trim()}</span>
-                    </div>
-                    {log.mota && (
-                      <div className="mt-2">
-                        <strong>Chi tiết:</strong> {log.mota}
-                      </div>
-                    )}
-                    {log.doituong_id && (
-                      <div className="mt-1">
-                        <strong>ID đối tượng:</strong> {log.doituong_id}
-                      </div>
-                    )}
-                    {log.ip_address && (
-                      <div className="mt-1 text-muted">
-                        <strong>Địa chỉ IP:</strong> {log.ip_address}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <FiUser className="me-2 text-muted" />
+                          <span>{log.nguoithuchien.trim()}</span>
+                        </div>
+                      </td>
+                      <td className="text-center">
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => handleViewDetails(log)}
+                          title="Xem chi tiết"
+                        >
+                          <FiEye />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          {filteredLogs.length > logsPerPage && (
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <div className="text-muted">
+                Trang {currentPage}/{totalPages} • Bản ghi {indexOfFirstLog + 1}
+                -{Math.min(indexOfLastLog, filteredLogs.length)}/
+                {filteredLogs.length}
+              </div>
+              <Pagination>
+                <Pagination.First
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                />
+                <Pagination.Prev
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                />
+
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <Pagination.Item
+                      key={pageNum}
+                      active={pageNum === currentPage}
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Pagination.Item>
+                  );
+                })}
+
+                <Pagination.Next
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                />
+                <Pagination.Last
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                />
+              </Pagination>
             </div>
           )}
+        </Card.Body>
+      </Card>
 
-          {logList.length > itemsPerPage && renderPagination()}
-        </div>
-      </div>
+      {/* Detail Modal */}
+      <Modal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Chi tiết hoạt động</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedLog && (
+            <div>
+              <Row className="mb-3">
+                <Col md={6}>
+                  <h6 className="text-muted">Thời gian</h6>
+                  <p>{formatDateTime(selectedLog.ngaygio)}</p>
+                </Col>
+                <Col md={6}>
+                  <h6 className="text-muted">Nhân viên thực hiện</h6>
+                  <p>{selectedLog.nguoithuchien.trim()}</p>
+                </Col>
+              </Row>
 
-      <style>{`
-        .timeline {
-          position: relative;
-          padding-left: 40px;
-        }
-        .timeline-item {
-          position: relative;
-          padding-bottom: 20px;
-        }
-        .timeline-dot {
-          position: absolute;
-          left: -20px;
-          top: 15px;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          border: 2px solid #fff;
-          transition: all 0.3s ease;
-        }
-        .timeline-content {
-          position: relative;
-          border-left: 3px solid #dee2e6;
-          padding-left: 30px;
-          transition: all 0.3s ease;
-        }
-        .timeline-content:hover {
-          transform: translateX(5px);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .timeline-item:last-child .timeline-content {
-          border-left-color: transparent;
-        }
-        .card {
-          border: none;
-          border-radius: 10px;
-        }
-        .card-header {
-          border-radius: 10px 10px 0 0;
-        }
-      `}</style>
+              <Row className="mb-3">
+                <Col md={6}>
+                  <h6 className="text-muted">Hành động</h6>
+                  <p>
+                    <Badge bg={getActionColor(selectedLog.hanhdong)}>
+                      {translateAction(selectedLog.hanhdong)}
+                    </Badge>
+                  </p>
+                </Col>
+                <Col md={6}>
+                  <h6 className="text-muted">Đối tượng</h6>
+                  <p>
+                    <Badge bg="light" text="dark">
+                      {translateObjectType(selectedLog.doituong)}
+                    </Badge>
+                    {selectedLog.id_doituong && (
+                      <span className="ms-2">
+                        (ID: <code>{selectedLog.id_doituong.trim()}</code>)
+                      </span>
+                    )}
+                  </p>
+                </Col>
+              </Row>
+
+              <h6 className="text-muted">Chi tiết</h6>
+              <div className="p-3 bg-light rounded mb-3 rounded-border04">
+                {selectedLog.hanhdong === "LOGIN" &&
+                  selectedLog.doituong === "NHANVIEN" && (
+                    <LoginDetails log={selectedLog} />
+                  )}
+
+                {selectedLog.hanhdong === "CREATE" &&
+                  selectedLog.doituong === "NHANVIEN" && (
+                    <CreateNhanVienDetails log={selectedLog} />
+                  )}
+
+                {selectedLog.hanhdong === "CREATE" &&
+                  selectedLog.doituong === "HOADON" && (
+                    <CreateHoaDonDetails log={selectedLog} />
+                  )}
+
+                {(selectedLog.hanhdong === "ADD_KHUYENMAI" ||
+                  selectedLog.hanhdong === "REMOVE_KHUYENMAI") && (
+                  <KhuyenMaiDetails log={selectedLog} />
+                )}
+
+                {selectedLog.hanhdong === "UPDATE" &&
+                  selectedLog.doituong === "SANPHAM" && (
+                    <UpdateSanPhamDetails log={selectedLog} />
+                  )}
+
+                {selectedLog.hanhdong === "UPDATE" &&
+                  selectedLog.doituong === "NHANVIEN" && (
+                    <UpdateNhanVienDetails log={selectedLog} />
+                  )}
+
+                {selectedLog.hanhdong === "UPDATE" &&
+                  selectedLog.doituong === "KHUYENMAI" && (
+                    <UpdateKhuyenMaiDetails log={selectedLog} />
+                  )}
+
+                {selectedLog.hanhdong === "UPDATE" &&
+                  selectedLog.doituong === "KHACHANG" && (
+                    <UpdateKhachHangDetails log={selectedLog} />
+                  )}
+
+                {selectedLog.hanhdong === "DELETE" &&
+                  selectedLog.doituong === "NHANVIEN" && (
+                    <DeleteNhanVienDetails log={selectedLog} />
+                  )}
+
+                {selectedLog.hanhdong === "DELETE" &&
+                  selectedLog.doituong === "KHACHANG" && (
+                    <DeleteKhachHangDetails log={selectedLog} />
+                  )}
+
+                {/* Fallback for other cases */}
+                {![
+                  "LOGIN_NHANVIEN",
+                  "CREATE_NHANVIEN",
+                  "CREATE_HOADON",
+                  "ADD_KHUYENMAI",
+                  "REMOVE_KHUYENMAI",
+                ].includes(
+                  `${selectedLog.hanhdong}_${selectedLog.doituong}`
+                ) && <GenericDetails log={selectedLog} />}
+              </div>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDetailModal(false)}>
+            Đóng
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
 
-export default LichSu;
+export default LichSu2;
