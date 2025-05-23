@@ -21,11 +21,15 @@ import {
   createHoaDon,
   fetchHoaDon,
   fetchHoaDonByKhachHangId,
+  fetchHoaDonHomNay,
+  fetchHoaDonQuyNay,
+  fetchHoaDonThangNay,
   fetchKhachHang,
   fetchKhachHangActive,
   fetchNhanVien,
   fetchNhanVienActive,
   fetchSanPham,
+  fetchSanPhamAvailable,
 } from "../services/apiService";
 
 const HoaDon = () => {
@@ -46,14 +50,48 @@ const HoaDon = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
+  const token = localStorage.getItem("token");
+  const currentUser = localStorage.getItem("username");
+  const currentUserName = localStorage.getItem("fullname");
+
   // Form data for creating invoice
   const [formData, setFormData] = useState({
     maKH: "",
-    maNV: "",
+    maNV: currentUser,
     sanpham: [{ maSP: "", soluong: 1 }],
   });
 
-  const token = localStorage.getItem("token");
+  // Hàm xử lý khi thay đổi filter
+  const handleFilterChange = async (type) => {
+    setLoading(true);
+    try {
+      let data;
+      switch (type) {
+        case "today":
+          data = await fetchHoaDonHomNay(token);
+          break;
+        case "month":
+          data = await fetchHoaDonThangNay(token);
+          break;
+        case "quarter":
+          data = await fetchHoaDonQuyNay(token);
+          break;
+        default:
+          data = await fetchHoaDon(token);
+      }
+
+      if (data.resultCode === 0) {
+        setInvoiceList(data.data);
+        setError(null);
+      } else {
+        throw new Error(data.message || "Không thể tải danh sách hóa đơn");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Validate form data
   const validateForm = () => {
@@ -65,11 +103,21 @@ const HoaDon = () => {
     if (!formData.maNV) {
       errors.maNV = "Nhân viên là bắt buộc";
     }
-    if (
-      formData.sanpham.length === 0 ||
-      formData.sanpham.some((item) => !item.maSP)
-    ) {
-      errors.sanpham = "Phải chọn ít nhất một sản phẩm";
+    // Kiểm tra từng sản phẩm trong danh sách
+    const productErrors = [];
+    formData.sanpham.forEach((item, index) => {
+      if (!item.maSP) {
+        productErrors[index] = "Vui lòng chọn sản phẩm";
+      }
+      if (item.soluong <= 0) {
+        productErrors[index] = productErrors[index]
+          ? `${productErrors[index]} và số lượng phải > 0`
+          : "Số lượng phải lớn hơn 0";
+      }
+    });
+
+    if (productErrors.length > 0) {
+      errors.sanpham = productErrors;
     }
 
     setValidationErrors(errors);
@@ -159,7 +207,7 @@ const HoaDon = () => {
   // Fetch all products
   const loadProducts = async () => {
     try {
-      const data = await fetchSanPham(token);
+      const data = await fetchSanPhamAvailable(token);
       if (data.resultCode === 0) {
         setProductList(data.data);
       } else {
@@ -185,6 +233,14 @@ const HoaDon = () => {
 
   // Hàm thêm sản phẩm mới
   const addProduct = (maSP = "") => {
+    setValidationErrors((prev) => {
+      const newErrors = { ...prev };
+      if (newErrors.sanpham) {
+        delete newErrors.sanpham;
+      }
+      return newErrors;
+    });
+
     if (!maSP) {
       // Nếu không có mã SP (click nút thêm mới)
       setFormData((prev) => ({
@@ -271,13 +327,30 @@ const HoaDon = () => {
   const handleCreateInvoice = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
+      // Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
+      // return;
+
+      // Cuộn đến lỗi đầu tiên nếu có
+      if (validationErrors.sanpham) {
+        const firstErrorIndex = Object.keys(validationErrors.sanpham)[0];
+        if (firstErrorIndex) {
+          const element = document.getElementById(
+            `product-select-${firstErrorIndex}`
+          );
+          element?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
       return;
     }
 
     try {
       setLoading(true);
-      const data = await createHoaDon(token, formData);
+      const invoiceData = {
+        ...formData,
+        maNV: currentUser, // Đảm bảo gửi username
+      };
+
+      const data = await createHoaDon(token, invoiceData);
       if (data.resultCode === 0) {
         const newInvoice = {
           ...data.data,
@@ -326,6 +399,12 @@ const HoaDon = () => {
     loadProducts();
   }, []);
 
+  // Thêm useEffect để theo dõi thay đổi searchType
+  useEffect(() => {
+    handleFilterChange(searchType);
+    console.log(searchType);
+  }, [searchType]);
+
   const handlePrintInvoice = () => {
     const printContents =
       document.getElementById("printable-invoice").innerHTML;
@@ -370,8 +449,8 @@ const HoaDon = () => {
               >
                 <option value="all">Tất cả hóa đơn</option>
                 <option value="today">Hôm nay</option>
-                <option value="week">Tuần này</option>
                 <option value="month">Tháng này</option>
+                <option value="quarter">Quý này</option>
               </Form.Select>
             </Form.Group>
 
@@ -438,7 +517,7 @@ const HoaDon = () => {
                       <td>{formatCurrency(item.trigia)}</td>
                       <td>
                         <button
-                          className="btn btn-sm btn-outline-primary btn-outline-primary-detail"
+                          className="btn btn-sm btn-outline-primary"
                           onClick={() => openDetailModal(item)}
                           title="Xem chi tiết"
                         >
@@ -556,24 +635,11 @@ const HoaDon = () => {
                   <Form.Label>
                     Nhân viên <span className="text-danger">*</span>
                   </Form.Label>
-                  <Form.Select
-                    name="maNV"
-                    value={formData.maNV}
-                    onChange={(e) =>
-                      setFormData({ ...formData, maNV: e.target.value })
-                    }
-                    isInvalid={!!validationErrors.maNV}
-                  >
-                    <option value="">Chọn nhân viên</option>
-                    {employeeList.map((employee) => (
-                      <option key={employee.id} value={employee.id}>
-                        {employee.id} - {employee.hoten}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  <Form.Control.Feedback type="invalid">
-                    {validationErrors.maNV}
-                  </Form.Control.Feedback>
+                  <Form.Control
+                    type="text"
+                    value={`${currentUser} - ${currentUserName}`}
+                    readOnly
+                  />
                 </Form.Group>
               </Col>
             </Row>
@@ -593,9 +659,16 @@ const HoaDon = () => {
                     <Form.Group>
                       <Form.Label>Tên sản phẩm</Form.Label>
                       <Form.Select
+                        id={`product-select-${index}`}
                         value={item.maSP || ""}
                         onChange={(e) =>
                           updateProductQuantity(index, "maSP", e.target.value)
+                        }
+                        isInvalid={
+                          !!(
+                            validationErrors.sanpham &&
+                            validationErrors.sanpham[index]
+                          )
                         }
                       >
                         <option value="">Chọn sản phẩm</option>
@@ -605,6 +678,12 @@ const HoaDon = () => {
                           </option>
                         ))}
                       </Form.Select>
+                      {validationErrors.sanpham &&
+                        validationErrors.sanpham[index] && (
+                          <Form.Control.Feedback type="invalid">
+                            {validationErrors.sanpham[index]}
+                          </Form.Control.Feedback>
+                        )}
                     </Form.Group>
                   </Col>
                   <Col md={1}>

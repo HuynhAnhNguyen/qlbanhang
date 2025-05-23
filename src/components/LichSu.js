@@ -294,7 +294,7 @@ const LichSu2 = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Lịch sử hoạt động");
 
     // Xuất file với tên chứa ngày giờ hiện tại
-    const fileName = `LichSuHoatDong_${format(
+    const fileName = `LichSuHoatDong_${formatDateTime(
       new Date(),
       "ddMMyyyy_HHmm"
     )}.xlsx`;
@@ -1014,13 +1014,13 @@ const LichSu2 = () => {
               {(startDate || endDate) && (
                 <span className="ms-2">
                   {startDate &&
-                    `từ ${format(new Date(startDate), "dd/MM/yyyy", {
+                    `từ ${formatDateTime(new Date(startDate), "dd/MM/yyyy", {
                       locale: vi,
                     })}`}
                   {startDate && endDate && " đến "}
                   {endDate && !startDate && "trước "}
                   {endDate &&
-                    `${format(new Date(endDate), "dd/MM/yyyy", {
+                    `${formatDateTime(new Date(endDate), "dd/MM/yyyy", {
                       locale: vi,
                     })}`}
                 </span>
@@ -1058,7 +1058,7 @@ const LichSu2 = () => {
                   <tr>
                     <td colSpan="6" className="text-center py-4">
                       <Spinner animation="border" variant="primary" />
-                      <p className="mt-2">Đang tải dữ liệu...</p>
+                      <p className="mt-2 text-muted">Đang tải dữ liệu...</p>
                     </td>
                   </tr>
                 ) : filteredLogs.length === 0 ? (

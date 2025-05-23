@@ -327,7 +327,7 @@ export const fetchNhanVienActive = async (token) => {
       "Content-Type": "application/json",
     },
   });
-  console.log(response.data);
+  // console.log(response.data);
   return response.data;
 };
 
@@ -466,6 +466,50 @@ export const fetchNhanVienDeleted = async (token) => {
 // Lấy danh sách khách hàng Deleted
 export const fetchKhachHangDeleted = async (token) => {
   const response = await axios.get(`${REACT_APP_API_URL}/khachhang/findKhachHangDeleted`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
+
+// fetchHoaDonHomNay
+export const fetchHoaDonHomNay = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/hoadon/hoadonHomnay`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
+
+// fetchHoaDonThangNay 
+export const fetchHoaDonThangNay = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/hoadon/hoadonThangnay`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
+
+// fetchHoaDonQuyNay
+export const fetchHoaDonQuyNay = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/hoadon/hoadonQuynay`, {
+    headers: {
+      Authorization: `${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
+
+// fetchSanPhamAvailable
+export const fetchSanPhamAvailable = async (token) => {
+  const response = await axios.get(`${REACT_APP_API_URL}/sanpham/findAvailable`, {
     headers: {
       Authorization: `${token}`,
       "Content-Type": "application/json",

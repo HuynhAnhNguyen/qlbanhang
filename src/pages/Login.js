@@ -11,7 +11,6 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-
   const handleLogin = async (e) => {
     e.preventDefault();
     let isValid = true;
@@ -33,32 +32,39 @@ const Login = () => {
 
     try {
       const data = await login(loginInput, password);
-      if (data.resultCode === -1) {
+      if (data.resultCode === 0) {
+        // Lưu token vào localStorage
+        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("fullname", data.data.fullname);
+        localStorage.setItem("role", data.data.role);
+        localStorage.setItem("username", data.data.username);
+
+        // Kiểm tra redirect từ trang tin tức
+        const from = location.state?.from || "/";
+
         Swal.fire({
-          title: "Lỗi!",
+          title: "Thành công!",
+          text: "Đăng nhập thành công!",
+          icon: "success",
+          timer: 1000,
+        }).then(() => {
+          navigate(from, { replace: true });
+        });
+      }else if (data.message === "Not found user in system") {
+        Swal.fire({
+          title: "Thất bại!",
+          text: "Tài khoản đăng nhập không tồn tại!",
+          icon: "error",
+          timer: 1000,
+        });
+      }else {
+        Swal.fire({
+          title: "Thất bại!",
           text: "Tên đăng nhập hoặc mật khẩu không đúng!",
           icon: "error",
-          confirmButtonText: "OK",
+          timer: 1000,
         });
       }
-
-      // Lưu token vào localStorage
-      localStorage.setItem("token", data.data.token);
-      localStorage.setItem("fullname", data.data.fullname);
-      localStorage.setItem("role", data.data.role);
-      localStorage.setItem("username", data.data.username);
-
-      // Kiểm tra redirect từ trang tin tức
-      const from = location.state?.from || "/";
-
-      Swal.fire({
-        title: "Thành công!",
-        text: "Đăng nhập thành công!",
-        icon: "success",
-        timer: 1000,
-      }).then(() => {
-        navigate(from, { replace: true });
-      });
     } catch (err) {
       Swal.fire({
         title: "Lỗi!",
@@ -89,9 +95,7 @@ const Login = () => {
                           height="130"
                         />
                         <p className="login-title">HỆ THỐNG QUẢN LÝ</p>
-                        <p className="login-subtitle">
-                          MUA BÁN HÀNG SIÊU THỊ
-                        </p>
+                        <p className="login-subtitle">MUA BÁN HÀNG SIÊU THỊ</p>
                       </div>
                       <form onSubmit={handleLogin}>
                         <div className="mb-3">
@@ -149,7 +153,8 @@ const Login = () => {
         <div className="container-fluid">
           <div className="row text-muted small">
             <div className="col-4 text-start">
-              <i className="fa-solid fa-location-dot me-1"></i> Địa chỉ: 125 Trần Phú, Văn Quán, Hà Đông, Hà Nội
+              <i className="fa-solid fa-location-dot me-1"></i> Địa chỉ: 125
+              Trần Phú, Văn Quán, Hà Đông, Hà Nội
             </div>
             <div className="col-4 text-center">
               <i className="fa-solid fa-phone me-1"></i> Hotline: 0123456789
