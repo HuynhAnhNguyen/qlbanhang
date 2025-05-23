@@ -226,7 +226,7 @@ const Sidebar = () => {
             </a>
           </li>
 
-          <li className={`sidebar-item ${isActive("/quan-ly-nhan-vien")}`}>
+          {/* <li className={`sidebar-item ${isActive("/quan-ly-nhan-vien")}`}>
             <a
               className="sidebar-link"
               onClick={() => navigate("/quan-ly-nhan-vien")}
@@ -234,6 +234,26 @@ const Sidebar = () => {
               <i className="fa-solid fa-user-tie"></i>
               <span className="align-middle">Quản lý nhân viên</span>
             </a>
+          </li> */}
+
+          <li className={`sidebar-item ${isActive("/quan-ly-nhan-vien")}`}>
+            {storedRole === "ROLE_SALE" ? (
+              <span
+                className="sidebar-link disabled"
+                style={{ cursor: "not-allowed", opacity: 0.5 }}
+              >
+                <i className="fa-solid fa-user-tie"></i>
+                <span className="align-middle">Quản lý nhân viên</span>
+              </span>
+            ) : (
+              <a
+                className="sidebar-link"
+                onClick={() => navigate("/quan-ly-nhan-vien")}
+              >
+                <i className="fa-solid fa-user-tie"></i>
+                <span className="align-middle">Quản lý nhân viên</span>
+              </a>
+            )}
           </li>
 
           <li className={`sidebar-item ${isActive("/quan-ly-hoa-don")}`}>

@@ -5,17 +5,7 @@ import {
   Form,
   Row,
   Col,
-  Badge,
-  ListGroup,
-  Table,
 } from "react-bootstrap";
-import {
-  FaFileInvoice,
-  FaUser,
-  FaClock,
-  FaDollarSign,
-  FaShoppingCart,
-} from "react-icons/fa";
 import Swal from "sweetalert2";
 import {
   createHoaDon,
@@ -25,7 +15,6 @@ import {
   fetchHoaDonQuyNay,
   fetchHoaDonThangNay,
   fetchKhachHangActive,
-  fetchNhanVienActive,
   fetchSanPhamAvailable,
 } from "../services/apiService";
 
@@ -35,7 +24,7 @@ const HoaDon = () => {
   const [employeeList, setEmployeeList] = useState([]);
   const [productList, setProductList] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [searchType, setSearchType] = useState("all");
+  const [searchType, setSearchType] = useState("time");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -46,6 +35,7 @@ const HoaDon = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState("all");
 
   const token = localStorage.getItem("token");
   const currentUser = localStorage.getItem("username");
@@ -96,9 +86,6 @@ const HoaDon = () => {
 
     if (!formData.maKH) {
       errors.maKH = "Khách hàng là bắt buộc";
-    }
-    if (!formData.maNV) {
-      errors.maNV = "Nhân viên là bắt buộc";
     }
     // Kiểm tra từng sản phẩm trong danh sách
     const productErrors = [];
@@ -187,20 +174,6 @@ const HoaDon = () => {
     }
   };
 
-  // Fetch all employees
-  const loadEmployees = async () => {
-    try {
-      const data = await fetchNhanVienActive(token);
-      if (data.resultCode === 0) {
-        setEmployeeList(data.data);
-      } else {
-        throw new Error(data.message || "Không thể tải danh sách nhân viên");
-      }
-    } catch (err) {
-      console.error("Error loading employees:", err);
-    }
-  };
-
   // Fetch all products
   const loadProducts = async () => {
     try {
@@ -221,6 +194,7 @@ const HoaDon = () => {
     const customer = customerList.find((item) => item.id == selectedId);
     setSelectedCustomer(customer || null);
     setCurrentPage(1);
+
     if (!selectedId) {
       loadAllInvoices();
     } else {
@@ -324,19 +298,7 @@ const HoaDon = () => {
   const handleCreateInvoice = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      // Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
-      // return;
-
-      // Cuộn đến lỗi đầu tiên nếu có
-      if (validationErrors.sanpham) {
-        const firstErrorIndex = Object.keys(validationErrors.sanpham)[0];
-        if (firstErrorIndex) {
-          const element = document.getElementById(
-            `product-select-${firstErrorIndex}`
-          );
-          element?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }
+      Swal.fire("Lỗi!", "Vui lòng điền đầy đủ các trường bắt buộc!", "error");
       return;
     }
 
@@ -392,14 +354,12 @@ const HoaDon = () => {
   useEffect(() => {
     loadAllInvoices();
     loadCustomers();
-    loadEmployees();
     loadProducts();
   }, []);
 
   // Thêm useEffect để theo dõi thay đổi searchType
   useEffect(() => {
     handleFilterChange(searchType);
-    console.log(searchType);
   }, [searchType]);
 
   const handlePrintInvoice = () => {
@@ -439,31 +399,44 @@ const HoaDon = () => {
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
           <h1 className="h3 mb-3 mb-md-0">Danh sách hóa đơn</h1>
           <div className="d-flex gap-2 align-items-center flex-wrap">
-            <Form.Group style={{ width: "200px" }}>
+            <Form.Select
+              value={searchType}
+              onChange={(e) => setSearchType(e.target.value)}
+              style={{ width: "200px" }}
+            >
+              <option value="time">Theo thời gian</option>
+              <option value="customer">Theo khách hàng</option>
+            </Form.Select>
+
+            {searchType === "time" ? (
               <Form.Select
-                value={searchType}
-                onChange={(e) => setSearchType(e.target.value)}
+                value={selectedTimeFilter}
+                onChange={(e) => {
+                  setSelectedTimeFilter(e.target.value);
+                  setSelectedCustomer(null);
+                  handleFilterChange(e.target.value);
+                }}
+                style={{ width: "250px" }}
               >
                 <option value="all">Tất cả hóa đơn</option>
                 <option value="today">Hôm nay</option>
                 <option value="month">Tháng này</option>
                 <option value="quarter">Quý này</option>
               </Form.Select>
-            </Form.Group>
-
-            <Form.Group style={{ width: "250px" }}>
+            ) : (
               <Form.Select
                 value={selectedCustomer?.id || ""}
                 onChange={handleCustomerChange}
+                style={{ width: "250px" }}
               >
-                <option value="">Chọn khách hàng</option>
+                <option value="">Tất cả khách hàng</option>
                 {customerList.map((customer) => (
                   <option key={customer.id} value={customer.id}>
                     {customer.hoten} ({customer.id})
                   </option>
                 ))}
               </Form.Select>
-            </Form.Group>
+            )}
 
             <button
               className="btn btn-success custom-sm-btn-dangvien"
@@ -978,7 +951,7 @@ const HoaDon = () => {
                           >
                             Tổng cộng:
                           </td>
-                          <td className="text-end fw-bold text-primary">
+                          <td className="fw-bold text-primary">
                             {formatCurrency(selectedInvoice.trigia)}
                           </td>
                         </tr>
@@ -989,7 +962,7 @@ const HoaDon = () => {
               </div>
 
               {/* Hidden div for printing */}
-              <div id="printable-invoice" className="d-none">
+              {/* <div id="printable-invoice" className="d-none">
                 <div className="text-center mb-4">
                   <h3 className="fw-bold">HÓA ĐƠN BÁN HÀNG</h3>
                   <div>Số: {selectedInvoice.id}</div>
@@ -1095,7 +1068,159 @@ const HoaDon = () => {
                   </div>
                   <div className="mt-4 fst-italic">(Ký, ghi rõ họ tên)</div>
                 </div>
-              </div>
+              </div> */}
+              <div id="printable-invoice" className="d-none p-4" style={{ fontFamily: "'Times New Roman', serif", maxWidth: "800px", margin: "0 auto" }}>
+  {/* Header hóa đơn */}
+  <div className="text-center mb-4 border-bottom pb-3">
+    <div className="mb-2">
+      <img 
+        src="/path-to-your-logo.png" 
+        alt="Logo công ty" 
+        style={{ height: "60px" }}
+      />
+    </div>
+    <h2 className="fw-bold mb-1" style={{ fontSize: "24pt" }}>HÓA ĐƠN BÁN HÀNG</h2>
+    <div className="text-uppercase" style={{ fontSize: "12pt", letterSpacing: "1px" }}>
+      Số: <strong>HD{selectedInvoice.id.toString().padStart(6, '0')}</strong>
+    </div>
+    <div style={{ fontSize: "11pt" }}>
+      Ngày: <strong>{formatDateTime(selectedInvoice.nghd)}</strong>
+    </div>
+  </div>
+
+  {/* Thông tin khách hàng và nhân viên */}
+  <div className="row mb-4">
+    <div className="col-md-6 border-end pe-3">
+      <h5 className="text-decoration-underline mb-3" style={{ fontSize: "13pt" }}>THÔNG TIN KHÁCH HÀNG</h5>
+      <table className="table table-borderless" style={{ fontSize: "11pt" }}>
+        <tbody>
+          <tr>
+            <td width="120"><strong>Mã KH:</strong></td>
+            <td>{selectedInvoice.makh.id}</td>
+          </tr>
+          <tr>
+            <td><strong>Tên KH:</strong></td>
+            <td className="text-uppercase">{selectedInvoice.makh.hoten}</td>
+          </tr>
+          {selectedInvoice.makh.diachi && (
+            <tr>
+              <td><strong>Địa chỉ:</strong></td>
+              <td>{selectedInvoice.makh.diachi}</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+    <div className="col-md-6 ps-3">
+      <h5 className="text-decoration-underline mb-3" style={{ fontSize: "13pt" }}>THÔNG TIN NHÂN VIÊN</h5>
+      <table className="table table-borderless" style={{ fontSize: "11pt" }}>
+        <tbody>
+          <tr>
+            <td width="120"><strong>Mã NV:</strong></td>
+            <td>{selectedInvoice.manv.id}</td>
+          </tr>
+          <tr>
+            <td><strong>Tên NV:</strong></td>
+            <td className="text-uppercase">{selectedInvoice.manv.hoten}</td>
+          </tr>
+          {selectedInvoice.manv.sdt && (
+            <tr>
+              <td><strong>Điện thoại:</strong></td>
+              <td>{selectedInvoice.manv.sdt}</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {/* Chi tiết sản phẩm */}
+  <h5 className="text-decoration-underline mb-2" style={{ fontSize: "13pt" }}>CHI TIẾT SẢN PHẨM</h5>
+  <table className="table table-bordered mb-4" style={{ fontSize: "10pt" }}>
+    <thead className="table-light">
+      <tr>
+        <th width="40" className="text-center">STT</th>
+        <th className="text-center">Tên sản phẩm</th>
+        <th width="80" className="text-center">Số lượng</th>
+        <th width="100" className="text-center">Đơn giá</th>
+        <th width="80" className="text-center">KM</th>
+        <th width="120" className="text-center">Giá sau KM</th>
+        <th width="120" className="text-center">Thành tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      {selectedInvoice.cthds.map((item, index) => {
+        const originalPrice = item.masp?.gia || 0;
+        const discountPercent = item.masp?.makm?.phantram || 0;
+        const discountPrice = discountPercent > 0
+          ? originalPrice * (1 - discountPercent / 100)
+          : originalPrice;
+
+        return (
+          <tr key={index}>
+            <td className="text-center">{index + 1}</td>
+            <td>
+              <div className="fw-bold">{item.masp.tensp}</div>
+              <div className="text-muted small">Mã: {item.masp.id}</div>
+            </td>
+            <td className="text-center">{item.sl}</td>
+            <td className="text-end">{formatCurrency(originalPrice)}</td>
+            <td className="text-center">
+              {item.masp.makm ? (
+                <span className="badge bg-light text-dark border">
+                  -{item.masp.makm.phantram}%
+                </span>
+              ) : (
+                <span className="text-muted">-</span>
+              )}
+            </td>
+            <td className="text-end">{formatCurrency(discountPrice)}</td>
+            <td className="text-end fw-bold">
+              {formatCurrency(item.sl * discountPrice)}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+    <tfoot className="table-light">
+      <tr>
+        <th colSpan="6" className="text-end">TỔNG CỘNG:</th>
+        <th className="text-end" style={{ fontSize: "11pt" }}>
+          {formatCurrency(selectedInvoice.trigia)}
+        </th>
+      </tr>
+      <tr>
+        <td colSpan="7" className="text-end" style={{ fontSize: "9pt" }}>
+          {/* <em>(Bằng chữ: {convertToWords(selectedInvoice.trigia)} đồng)</em> */}
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+
+  {/* Phần chữ ký */}
+  <div className="row mt-4">
+    <div className="col-md-6">
+      <div className="text-center">
+        <div className="mb-1"><strong>KHÁCH HÀNG</strong></div>
+        <div className="fst-italic">(Ký và ghi rõ họ tên)</div>
+        <div className="mt-4 pt-3 border-top" style={{ width: "200px", margin: "0 auto" }}></div>
+      </div>
+    </div>
+    <div className="col-md-6">
+      <div className="text-center">
+        <div className="mb-1"><strong>NHÂN VIÊN BÁN HÀNG</strong></div>
+        <div className="fst-italic">(Ký và ghi rõ họ tên)</div>
+        <div className="mt-4 pt-3 border-top" style={{ width: "200px", margin: "0 auto" }}></div>
+      </div>
+    </div>
+  </div>
+
+  {/* Footer hóa đơn */}
+  <div className="mt-4 pt-2 border-top text-center small text-muted">
+    <div>Cảm ơn quý khách đã sử dụng dịch vụ của chúng tôi</div>
+    <div>Hóa đơn điện tử - Có giá trị như hóa đơn gốc</div>
+  </div>
+</div>
             </>
           )}
         </Modal.Body>
