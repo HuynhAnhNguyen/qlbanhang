@@ -517,3 +517,22 @@ export const fetchSanPhamAvailable = async (token) => {
   });
   return response.data;
 };
+
+// Change password
+export const changePassword = async (token, maNV, passwordData) => {
+  const response = await axios.post(
+    `${REACT_APP_API_URL}/nhanvien/changePassword`,
+    {
+      maNV: maNV,
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+    },
+    {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  return response.data;
+};

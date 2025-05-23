@@ -289,6 +289,17 @@ const NhanVien = () => {
     return dateTimeString;
   };
 
+  const translateRoleName = (roleName) => {
+    switch (roleName) {
+      case "ROLE_ADMIN":
+        return "Quản trị viên";
+      case "ROLE_SALE":
+        return "Nhân viên bán hàng";
+      default:
+        return roleName;
+    }
+  };
+
   // Render form
   const renderEmployeeForm = () => (
     <Form>
@@ -330,22 +341,22 @@ const NhanVien = () => {
           </Form.Group>
         </Col>
         <Col md={6}>
-            <Form.Group>
-              <Form.Label>
-                Mật khẩu <span className="text-danger">*</span>
-              </Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                isInvalid={!!validationErrors.password}
-              />
-              <Form.Control.Feedback type="invalid">
-                {validationErrors.password}
-              </Form.Control.Feedback>
-            </Form.Group>
-          </Col>
+          <Form.Group>
+            <Form.Label>
+              Mật khẩu <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              isInvalid={!!validationErrors.password}
+            />
+            <Form.Control.Feedback type="invalid">
+              {validationErrors.password}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </Col>
       </Row>
       <Row className="mb-3">
         <Col>
@@ -363,7 +374,7 @@ const NhanVien = () => {
               <option value="">-- Chọn vai trò --</option>
               {roleList.map((role) => (
                 <option key={role.id} value={role.rolename}>
-                  {role.rolename}
+                  {translateRoleName(role.rolename)}
                 </option>
               ))}
             </Form.Select>
@@ -430,7 +441,7 @@ const NhanVien = () => {
               <option value="">-- Chọn vai trò --</option>
               {roleList.map((role) => (
                 <option key={role.id} value={role.rolename}>
-                  {role.rolename}
+                  {translateRoleName(role.rolename)}
                 </option>
               ))}
             </Form.Select>
@@ -514,7 +525,7 @@ const NhanVien = () => {
                       <td>{item.id}</td>
                       <td>{item.hoten}</td>
                       <td>{item.sodt}</td>
-                      <td>{item.roleid.rolename}</td>
+                      <td>{translateRoleName(item.roleid.rolename)}</td>
                       <td>{formatDateTime(item.ngvl)}</td>
 
                       <td>
@@ -716,7 +727,9 @@ const NhanVien = () => {
                 <FaUserShield className="icon" />
                 <div>
                   <label>Vai trò</label>
-                  <p className="fw-bold">{employeeDetail.roleid.rolename}</p>
+                  <p className="fw-bold">
+                    {translateRoleName(employeeDetail.roleid.rolename)}
+                  </p>
                 </div>
               </div>
 
