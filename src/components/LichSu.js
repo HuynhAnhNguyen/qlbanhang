@@ -65,6 +65,7 @@ const LichSu2 = () => {
         ]);
 
         if (logsRes.resultCode === 0 && employeesRes.resultCode === 0) {
+          console.log(logsRes.data);
           setLogs(logsRes.data);
           setFilteredLogs(logsRes.data);
           setEmployees(employeesRes.data);
@@ -205,6 +206,7 @@ const LichSu2 = () => {
       KHUYENMAI: "Khuyến mãi",
       NHANVIEN: "Nhân viên",
       KHACHHANG: "Khách hàng",
+      KHACHANG: "Khách hàng",
       DONHANG: "Đơn hàng",
       HOADON: "Hóa đơn",
     };
@@ -1049,7 +1051,7 @@ const LichSu2 = () => {
                   <th width="150px">Thời gian</th>
                   <th width="120px">Hành động</th>
                   <th width="120px">Đối tượng</th>
-                  <th>Nhân viên</th>
+                  <th>Người thực hiện</th>
                   <th width="100px">Thao tác</th>
                 </tr>
               </thead>
