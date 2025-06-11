@@ -65,7 +65,6 @@ const LichSu2 = () => {
         ]);
 
         if (logsRes.resultCode === 0 && employeesRes.resultCode === 0) {
-          console.log(logsRes.data);
           setLogs(logsRes.data);
           setFilteredLogs(logsRes.data);
           setEmployees(employeesRes.data);
